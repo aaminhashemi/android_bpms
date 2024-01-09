@@ -8,15 +8,6 @@ class AuthService {
 
   AuthService(this.baseUrl);
 
-  Future<Map<String, dynamic>> register(String mobile, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/register'),
-      body: {'mobile': mobile, 'password': password},
-    );
-
-    return json.decode(response.body);
-  }
-
   Future<Map<String, dynamic>> login(String mobile, String password) async {
     final response = await http.post(Uri.parse('$baseUrl/login'), body: {
       'mobile': mobile,
@@ -24,9 +15,7 @@ class AuthService {
     }, headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
-      // Add other headers if required
     });
-
     return json.decode(response.body);
   }
 

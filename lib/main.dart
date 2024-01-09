@@ -1,10 +1,10 @@
-import 'package:android_bpms1/screens/assistance.dart';
-import 'package:android_bpms1/screens/leave_request.dart';
-import 'package:android_bpms1/screens/login.dart';
-import 'package:android_bpms1/screens/mission_request.dart';
-import 'package:android_bpms1/screens/personnel.dart';
-import 'package:android_bpms1/screens/payslip.dart';
-import 'package:android_bpms1/utils/custom_color.dart';
+import '../screens/assistance.dart';
+import '../screens/leave_request.dart';
+import '../screens/login.dart';
+import '../screens/mission_request.dart';
+import '../screens/personnel.dart';
+import '../screens/payslip.dart';
+import '../utils/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 

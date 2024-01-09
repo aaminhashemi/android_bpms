@@ -1,4 +1,4 @@
-name: android_bpms1
+name: android_bpms
 description: "bpms android version"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -46,9 +46,7 @@ dependencies:
   shamsi_date: ^1.0.2
   flutter_downloader: ^1.11.0
   flutter_linear_datepicker: ^2.0.5
-  package_info: ^2.0.2
-  flutter_install_apk_silently: ^0.2.0
-
+  package_info_plus: ^5.0.1
 
 dev_dependencies:
   flutter_test:

@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../utils/custom_color.dart';
 
 class AppDrawer extends StatelessWidget {
+
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
 
   void _secondLogout(BuildContext context) async {
@@ -48,7 +49,7 @@ class AppDrawer extends StatelessWidget {
             title: Text('خانه'),
             leading: Icon(Icons.home),
             onTap: () {
-              Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, '/personnel');
             },
           ),
           ExpansionTile(

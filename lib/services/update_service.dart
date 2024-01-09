@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class UpdateService {
   final String baseUrl;
@@ -12,9 +11,8 @@ class UpdateService {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final response = await http.post(
       Uri.parse(baseUrl),
-      body: {'version': packageInfo.version},
+      body: jsonEncode({'version': packageInfo.version}),
     );
     return json.decode(response.body);
   }
-
-  }
+}

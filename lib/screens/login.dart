@@ -1,11 +1,10 @@
-import 'package:android_bpms1/utils/custom_color.dart';
-import 'package:android_bpms1/utils/custom_notification.dart';
+import '../utils/custom_color.dart';
+import '../utils/custom_notification.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_install_apk_silently/flutter_install_apk_silently.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/auth_service.dart';
 import '../services/update_service.dart';
-import 'package:http/http.dart' as http;
-import 'dart:io';
+import '../utils/custom_notification.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -23,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     checkAccessToken();
+    checkForAvailableUpdate();
   }
 
   void checkAccessToken() async {
@@ -39,24 +39,40 @@ class _LoginScreenState extends State<LoginScreen> {
   void checkForAvailableUpdate() async {
     final response = await updateService.check();
     if(response['status']=='successful'){
-      _downloadAndInstall(response['address']);
+      print('hi');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('به روز رسانی',style: TextStyle(fontSize: 13,fontWeight: FontWeight.normal)),
+            content: Text('نسخه ی جدیدی از اپلیکیشن در دسترس است!',style: TextStyle(fontSize: 12,fontWeight: FontWeight.normal)),
+            actions: <Widget>[
+              TextButton(
+                style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.green),),
+                onPressed: () {
+                  _launchURL(response['url']);
+                },
+                child: Text('به روز رسانی'),
+              ),
+              TextButton(
+                style: ButtonStyle(backgroundColor: MaterialStateProperty.all<Color>(Colors.red),),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('لغو'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
-  Future<void> _downloadAndInstall(String url) async {
-    try {
-      final response = await http.get(Uri.parse(url));
-      final file = File('path/to/your/download/folder/newer_app.apk');
-      await file.writeAsBytes(response.bodyBytes);
-     // _installApk(file);
-    } catch (error) {
-      print('Error downloading: $error');
-    }
-  }
-  Future<void> _installApk(File apkFile) async {
-    try {
-     // await FlutterInstallApkSilently.installApkSilently(apkFile.path);
-    } catch (error) {
-      print('Error installing APK: $error');
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
     }
   }
   void _login() async {
@@ -131,9 +147,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 24.0),
                     ElevatedButton(
-                      onPressed: _login,
+                      onPressed: isLoading ? null : _login ,
                       child: isLoading
-                          ? CircularProgressIndicator() // Show loading indicator
+                          ? CircularProgressIndicator()
                           : Text(
                               'ورود',
                             ),

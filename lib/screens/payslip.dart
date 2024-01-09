@@ -1,4 +1,4 @@
-import 'package:android_bpms1/services/user_service.dart';
+import '../services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'dart:convert';
@@ -138,7 +138,6 @@ class _PayslipListState extends State<PayslipList> {
                             color: Colors.blue,
                           ),
                         ),
-                        // Add more subtitles as needed
                       ],
                     ),
                     trailing: Icon(Icons.arrow_forward),
@@ -148,7 +147,8 @@ class _PayslipListState extends State<PayslipList> {
                         MaterialPageRoute(
                           builder: (context) => PayslipDetails(payslip),
                         ),
-                      );                    },
+                      );
+                      },
                   ),
                 );
               },

@@ -1,7 +1,7 @@
-import 'package:android_bpms1/services/save_assistance_service.dart';
-import 'package:android_bpms1/utils/custom_color.dart';
-import 'package:android_bpms1/utils/custom_notification.dart';
-import 'package:android_bpms1/widgets/app_drawer.dart';
+import '../services/save_assistance_service.dart';
+import '../utils/custom_color.dart';
+import '../utils/custom_notification.dart';
+import '../widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
@@ -13,6 +13,7 @@ class Assistance extends StatefulWidget {
 class _AssistanceState extends State<Assistance> {
   TextEditingController dateController = TextEditingController();
   TextEditingController valueController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -28,6 +29,9 @@ class _AssistanceState extends State<Assistance> {
   }
 
   Future<void> save() async {
+    setState(() {
+      isLoading = true;
+    });
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save-assistance';
     SaveAssistanceService saveAssistanceService = SaveAssistanceService(apiUrl);
 
@@ -50,6 +54,10 @@ class _AssistanceState extends State<Assistance> {
       }
     } catch (e) {
       CustomNotification.showCustomDanger(context,'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
+    }finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -122,8 +130,12 @@ class _AssistanceState extends State<Assistance> {
 
   Widget _buildSaveButton() {
     return ElevatedButton(
-      onPressed: save,
-      child: const Text('ثبت'),
+      onPressed: isLoading ? null : save,
+      child: isLoading
+          ? CircularProgressIndicator() // Show loading indicator
+          : Text(
+        'ثبت',
+      ),
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(double.infinity, 48),
         primary: CustomColor.buttonColor,

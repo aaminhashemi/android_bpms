@@ -1,4 +1,4 @@
-import 'package:android_bpms1/utils/custom_color.dart';
+import '../utils/custom_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linear_datepicker/flutter_datepicker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
@@ -25,6 +25,7 @@ class _MissionRequestState extends State<MissionRequest> {
         now.year, now.month, now.day, timeOfDay.hour, timeOfDay.minute);
   }
 
+  bool isLoading = false;
   TextEditingController dateController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
   TextEditingController typeController = TextEditingController();
@@ -124,7 +125,7 @@ class _MissionRequestState extends State<MissionRequest> {
                 ),
                 onPressed: () {
                   controller.text = selected;
-                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context);
                 },
               ),
             ],
@@ -189,7 +190,7 @@ class _MissionRequestState extends State<MissionRequest> {
                 ),
                 onPressed: () {
                   controller.text = selected;
-                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context);
                 },
               ),
             ],
@@ -285,6 +286,9 @@ class _MissionRequestState extends State<MissionRequest> {
   }
 
   Future<void> submitMissionRequest() async {
+    setState(() {
+      isLoading = true;
+    });
     final apiUrl = 'https://afkhambpms.ir/api1/personnels/save_mission_request';
     var type = '';
     switch (leaveType) {
@@ -322,6 +326,10 @@ class _MissionRequestState extends State<MissionRequest> {
       }
     } catch (e) {
       CustomNotification.showCustomDanger(context,'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
+    }finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -364,7 +372,7 @@ class _MissionRequestState extends State<MissionRequest> {
                         onChanged: (newValue) {
                           setState(() {
                             leaveType = newValue!;
-                            clearHourFields(); // Clear hour fields when leave type changes
+                            clearHourFields();
                           });
                         },
                         items: leaveTypes.map((type) {
@@ -374,7 +382,7 @@ class _MissionRequestState extends State<MissionRequest> {
                               width: double.infinity,
                               padding: EdgeInsets.symmetric(
                                   horizontal: 16.0,
-                                  vertical: 12.0), // Add padding
+                                  vertical: 12.0),
                               child: Text(
                                 type,
                                 style: TextStyle(
@@ -414,17 +422,22 @@ class _MissionRequestState extends State<MissionRequest> {
                       ),
                       style: TextStyle(
                         fontFamily:
-                            'irs', // Replace with the actual font name supporting Persian characters
-                      )),
+                            'irs',
+                      )
+                  ),
                   SizedBox(height: 24.0),
                   ElevatedButton(
-                      onPressed: submitMissionRequest,
-                      child: Text('ثبت'),
+                      onPressed: isLoading ? null : submitMissionRequest ,
+                      child: isLoading
+                          ? CircularProgressIndicator()
+                          : Text(
+                        'ثبت',
+                      ),
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 48),
                         maximumSize: const Size(double.infinity, 48),
                         primary: CustomColor
-                            .buttonColor, // Set your desired background color
+                            .buttonColor,
                       )),
                 ],
               ),

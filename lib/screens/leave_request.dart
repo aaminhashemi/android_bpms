@@ -1,8 +1,6 @@
-import 'dart:convert';
-import 'package:android_bpms1/services/save_leave_request_service.dart';
-import 'package:android_bpms1/utils/custom_color.dart';
+import '../services/save_leave_request_service.dart';
+import '../utils/custom_color.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_linear_datepicker/flutter_datepicker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import '../utils/custom_notification.dart';
@@ -27,6 +25,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
         now.year, now.month, now.day, timeOfDay.hour, timeOfDay.minute);
   }
 
+  bool isLoading=false;
   TextEditingController dateController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
   TextEditingController typeController = TextEditingController();
@@ -127,7 +126,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                 ),
                 onPressed: () {
                   controller.text = selected;
-                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context);
                 },
               ),
             ],
@@ -191,7 +190,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                 ),
                 onPressed: () {
                   controller.text = selected;
-                  Navigator.pop(context); // Close the dialog
+                  Navigator.pop(context);
                 },
               ),
             ],
@@ -243,7 +242,6 @@ class _LeaveRequestState extends State<LeaveRequest> {
               startTime = pickedTime;
               startTimeController.text = MaterialLocalizations.of(context)
                   .formatTimeOfDay(pickedTime!);
-              //startTimeController.text=pickedTime.toString();
             });
           },
           decoration: InputDecoration(
@@ -287,6 +285,9 @@ class _LeaveRequestState extends State<LeaveRequest> {
   }
 
   Future<void> submitLeaveRequest() async {
+    setState(() {
+      isLoading = true;
+    });
     final apiUrl = 'https://afkhambpms.ir/api1/personnels/save_leaving_request';
     var type = '';
     switch (leaveType) {
@@ -324,6 +325,10 @@ class _LeaveRequestState extends State<LeaveRequest> {
       }
     } catch (e) {
       CustomNotification.showCustomDanger(context,'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
+    }finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -345,7 +350,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min, // Set to MainAxisSize.min to minimize the height
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         'درخواست مرخصی',
@@ -369,7 +374,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                             onChanged: (newValue) {
                               setState(() {
                                 leaveType = newValue!;
-                                clearHourFields(); // Clear hour fields when leave type changes
+                                clearHourFields();
                               });
                             },
                             items: leaveTypes.map((type) {
@@ -379,7 +384,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                   width: double.infinity,
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 16.0,
-                                      vertical: 12.0), // Add padding
+                                      vertical: 12.0),
                                   child: Text(type,
                                       style: TextStyle(
                                         fontSize: 16,
@@ -413,17 +418,21 @@ class _LeaveRequestState extends State<LeaveRequest> {
                         ),
                         style: TextStyle(
                           fontFamily:
-                          'irs', // Replace with the actual font name supporting Persian characters
+                          'irs',
                         ),
                       ),
                       SizedBox(height: 24.0),
                       ElevatedButton(
-                        onPressed: submitLeaveRequest,
-                        child: Text('ثبت'),
+                        onPressed: isLoading ? null : submitLeaveRequest,
+                        child: isLoading
+                            ? CircularProgressIndicator()
+                            : Text(
+                          'ثبت',
+                        ),
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 48),
                           primary:
-                          CustomColor.buttonColor, // Set your desired background color
+                          CustomColor.buttonColor,
                         ),
                       ),
                     ],
