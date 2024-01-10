@@ -116,10 +116,7 @@ class _PayslipListState extends State<PayslipList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'مبلغ : ' +
-                              NumberFormat.currency(locale: 'en_US', symbol: '')
-                                  .format(payslip['value']) +
-                              ' ریال',
+                          ' مبلغ :  ${payslip['price']}  ریال ',
                           style: TextStyle(
                             fontStyle: FontStyle.italic,
                           ),
