@@ -1,3 +1,7 @@
+import 'dart:convert';
+import '../services/auth_service.dart';
+import 'package:http/http.dart' as http;
+
 import '../services/save_assistance_service.dart';
 import '../utils/custom_color.dart';
 import '../utils/custom_notification.dart';
@@ -53,8 +57,9 @@ class _AssistanceState extends State<Assistance> {
         );
       }
     } catch (e) {
-      CustomNotification.showCustomDanger(context,'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
-    }finally {
+      CustomNotification.showCustomDanger(
+          context, 'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
+    } finally {
       setState(() {
         isLoading = false;
       });
@@ -65,15 +70,56 @@ class _AssistanceState extends State<Assistance> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ثبت درخواست مساعده'),
+        title: const Text('درخواست مساعده'),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              Card(
+                color: CustomColor.primaryColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        'لیست درخواست ها',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                      SizedBox(width: 140),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllAssistances(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: CustomColor.warningColor, // Set your desired background color
+                            borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
+                          ),
+                          child: Text(
+                            'مشاهده',
+                            style: TextStyle(
+                              // Add text styles here if needed
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
               Card(
                 color: CustomColor.primaryColor,
                 child: Padding(
@@ -81,9 +127,9 @@ class _AssistanceState extends State<Assistance> {
                   child: Column(
                     children: [
                       Text(
-                        'درخواست مساعده',
+                        'ثبت درخواست مساعده',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 16,
                           fontWeight: FontWeight.normal,
                         ),
                       ),
@@ -134,8 +180,8 @@ class _AssistanceState extends State<Assistance> {
       child: isLoading
           ? CircularProgressIndicator() // Show loading indicator
           : Text(
-        'ثبت',
-      ),
+              'ثبت',
+            ),
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(double.infinity, 48),
         primary: CustomColor.buttonColor,
@@ -148,4 +194,95 @@ void main() {
   runApp(MaterialApp(
     home: Assistance(),
   ));
+}
+
+class AllAssistances extends StatefulWidget {
+  @override
+  _AllAssistanceListState createState() => _AllAssistanceListState();
+
+}
+
+class _AllAssistanceListState extends State<AllAssistances> {
+
+  List<dynamic> allAssistancelList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData(context);
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('لیست درخواست های مساعده'),
+        ),
+        body: allAssistancelList.isEmpty
+            ? Center(
+          child: CircularProgressIndicator(),
+        )
+            : ListView.builder(
+          itemCount: allAssistancelList.length,
+          itemBuilder: (context, index) {
+            var assistance = allAssistancelList[index];
+            return Card(
+              elevation: 4.0,
+              color: CustomColor.primaryColor,
+              margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: ListTile(
+                title: Text(
+                  ' تاریخ درخواست : ${assistance['jalali_date']} ',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.0,
+                  ),
+                ),
+                subtitle: Text(
+                  'مبلغ  : ${assistance['price']} ریال ',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                trailing: InkWell(
+                  child: Container(
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: CustomColor.primaryColor, // Set your desired background color
+                      borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
+                    ),
+                    child: Text(
+                      '${assistance['level']}',
+                      style: TextStyle(
+                        // Add text styles here if needed
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+    );
+  }
+
+  Future<void> fetchData(BuildContext context) async {
+    final AuthService authService = AuthService('https://afkhambpms.ir/api1');
+    final token = await authService.getToken();
+
+    final response = await http.get(Uri.parse('https://afkhambpms.ir/api1/personnels/get-assistance'),
+        headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        });
+
+    if (response.statusCode == 200) {
+      setState(() {
+        allAssistancelList = json.decode(response.body);
+      });
+    } else {
+      throw Exception('خطا در دریافت داده ها');
+    }
+  }
+
 }

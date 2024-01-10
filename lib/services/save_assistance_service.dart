@@ -23,4 +23,19 @@ class SaveAssistanceService {
     );
     return json.decode(response.body);
   }
+
+  Future getPersonnelAssistance() async {
+    final token = await authService.getToken();
+    final response = await http.get(Uri.parse(assistanceUrl), headers: {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    });
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    }else{
+      return [];
+    }
+  }
+
 }
