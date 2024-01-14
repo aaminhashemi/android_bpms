@@ -1,3 +1,5 @@
+import 'package:android_bpms/screens/loan.dart';
+
 import '../screens/assistance.dart';
 import '../screens/leave_request.dart';
 import '../screens/login.dart';
@@ -39,6 +41,7 @@ class MyApp extends StatelessWidget {
         '/personnel':(context)=>PersonnelList(),
         '/payslip':(context)=>PayslipList(),
         '/assistance':(context)=>Assistance(),
+        '/loan':(context)=>Loan(),
         '/leave-request':(context)=>LeaveRequest(),
         '/mission-request':(context)=>MissionRequest(),
       },

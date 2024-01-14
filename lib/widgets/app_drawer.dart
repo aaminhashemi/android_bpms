@@ -65,6 +65,9 @@ class AppDrawer extends StatelessWidget {
               _buildListTile('درخواست مساعده', onTap: () {
                 Navigator.pushReplacementNamed(context, '/assistance');
               }),
+              _buildListTile('درخواست وام', onTap: () {
+                Navigator.pushReplacementNamed(context, '/loan');
+              }),
               _buildListTile('مشاهده فیش حقوقی', onTap: () {
                 Navigator.pushReplacementNamed(context, '/payslip');
               }),
