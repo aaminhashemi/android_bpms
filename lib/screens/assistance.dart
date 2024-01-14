@@ -214,54 +214,66 @@ class _AllAssistanceListState extends State<AllAssistances> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('لیست درخواست های مساعده'),
-        ),
-        body: allAssistancelList.isEmpty
-            ? Center(
-          child: CircularProgressIndicator(),
-        )
-            : ListView.builder(
-          itemCount: allAssistancelList.length,
-          itemBuilder: (context, index) {
-            var assistance = allAssistancelList[index];
-            return Card(
-              elevation: 4.0,
-              color: CustomColor.primaryColor,
-              margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ListTile(
-                title: Text(
-                  ' تاریخ درخواست : ${assistance['jalali_date']} ',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                  ),
+      appBar: AppBar(
+        title: Text('لیست درخواست های مساعده'),
+      ),
+      body: allAssistancelList.isEmpty
+          ? Center(
+        child: CircularProgressIndicator(),
+      )
+          : ListView.builder(
+        itemCount: allAssistancelList.length,
+        itemBuilder: (context, index) {
+          var assistance = allAssistancelList[index];
+          return Card(
+            elevation: 4.0,
+            color: CustomColor.primaryColor,
+            margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: ExpansionTile(
+              shape: LinearBorder.none,
+              leading: Icon(Icons.keyboard_arrow_down),
+              title: Text(
+                ' تاریخ درخواست : ${assistance['jalali_date']} ',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.0,
                 ),
-                subtitle: Text(
-                  'مبلغ  : ${assistance['price']} ریال ',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                  ),
+              ),
+              subtitle: Text(
+                'مبلغ  : ${assistance['price']} ریال ',
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
                 ),
-                trailing: InkWell(
-                  child: Container(
-                    padding: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: CustomColor.primaryColor, // Set your desired background color
-                      borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
-                    ),
-                    child: Text(
-                      '${assistance['level']}',
-                      style: TextStyle(
-                        // Add text styles here if needed
-                      ),
-                    ),
+              ),
+              trailing: InkWell(
+                child: Container(
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: CustomColor.primaryColor,
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: Text(
+                    '${assistance['level']}',
+                    style: TextStyle(),
                   ),
                 ),
               ),
-            );
-          },
-        ),
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Additional Information: ${assistance['additionalInfo']}',
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
