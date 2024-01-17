@@ -17,6 +17,7 @@ class SaveLeaveRequestService {
       String start_time,
       String end_time,
       String reason,
+      String leave_period,
       String leave_type) async {
     final token = await authService.getToken();
     final response = await http.post(
@@ -33,9 +34,11 @@ class SaveLeaveRequestService {
         'start_time': start_time,
         'end_time': end_time,
         'reason': reason,
+        'period': leave_period,
         'type': leave_type,
       }),
     );
+    print(response.body);
     return json.decode(response.body);
   }
 }
