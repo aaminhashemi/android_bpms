@@ -82,6 +82,7 @@ class _LoanState extends State<Loan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: const Text('درخواست وام'),
       ),
@@ -93,7 +94,10 @@ class _LoanState extends State<Loan> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Card(
-                color: CustomColor.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                color: CustomColor.cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -136,7 +140,10 @@ class _LoanState extends State<Loan> {
                 ),
               ),
               Card(
-                color: CustomColor.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                color: CustomColor.cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -264,6 +271,7 @@ class AllLoans extends StatefulWidget {
 
 class _AllLoanListState extends State<AllLoans> {
   List<dynamic> allLoanlList = [];
+  late List<bool> _isExpandedList=List.generate(allLoanlList.length, (index) => false);
 
   @override
   void initState() {
@@ -273,6 +281,7 @@ class _AllLoanListState extends State<AllLoans> {
 
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: Text('لیست درخواست های وام'),
       ),
@@ -285,23 +294,34 @@ class _AllLoanListState extends State<AllLoans> {
               itemBuilder: (context, index) {
                 var loan = allLoanlList[index];
                 return Card(
+                  color: CustomColor.cardColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
                   elevation: 4.0,
-                  color: CustomColor.primaryColor,
                   margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: ExpansionTile(
+                    onExpansionChanged: (isExpanded) {
+                      setState(() {
+                        _isExpandedList[index] = isExpanded;
+                      });
+                    },
+                    leading: _isExpandedList[index]
+                        ? Icon(Icons.keyboard_arrow_up) // Up arrow when expanded
+                        : Icon(Icons.keyboard_arrow_down), // Down arrow when collapsed
                     shape: LinearBorder.none,
-                    leading: Icon(Icons.keyboard_arrow_down),
                     title: Text(
                       ' تاریخ درخواست : ${loan['jalali_request_date']} ',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 13.0,
                       ),
                     ),
                     subtitle: Text(
                       'مبلغ درخواستی  : ${loan['formatted_requested_value']} ریال ',
                       style: TextStyle(
-                        fontStyle: FontStyle.italic,
+                        fontStyle: FontStyle.normal,
+                        fontSize: 13.0,
                       ),
                     ),
                     trailing: InkWell(
@@ -322,23 +342,66 @@ class _AllLoanListState extends State<AllLoans> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            Text(
-                              'تعداد اقساط  : ${loan['repayment_count']}  ',
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
+                            Row(
+                             children: [
+                               RichText(
+                                 text: TextSpan(
+                                   style: DefaultTextStyle.of(context).style,
+                                   children: [
+                                     TextSpan(
+                                       text: 'تعداد اقساط : ',
+                                       style: TextStyle(fontWeight: FontWeight.bold),
+                                     ),
+                                     TextSpan(
+                                       text: '${loan['repayment_count']} ',
+                                       style: TextStyle(
+                                         fontStyle: FontStyle.normal,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                               Spacer(),
+                               RichText(
+                                 text: TextSpan(
+                                   style: DefaultTextStyle.of(context).style,
+                                   children: [
+                                     TextSpan(
+                                       text: 'مبلغ هر قسط : ',
+                                       style: TextStyle(fontWeight: FontWeight.bold),
+                                     ),
+                                     TextSpan(
+                                       text: '${loan['formatted_repayment_value']} ریال',
+                                       style: TextStyle(
+                                         fontStyle: FontStyle.normal,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ],
                             ),
-                            Text(
-                              'مبلغ هر قسط  : ${loan['formatted_repayment_value']} ریال ',
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            Text(
-                              'مبلغ باقیمانده  : ${loan['formatted_residue_value']} ریال ',
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
+                            Row(
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      style: DefaultTextStyle.of(context).style,
+                                      children: [
+                                        TextSpan(
+                                          text: 'مبلغ باقیمانده : ',
+                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        ),
+                                        TextSpan(
+                                          text: '${loan['formatted_residue_value']} ریال',
+                                          style: TextStyle(
+                                            fontStyle: FontStyle.normal,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Spacer()
+                                ],
                             )
                           ],
                         ),
