@@ -8,4 +8,7 @@ class CustomColor{
   static const Color buttonColor = Color(0xff4ade80);
   static const Color textColor = Color(0xff1e293b);
   static const Color borderColor = Color(0xff4ade80);
+  static const Color cardColor = Color(0xFF8CF6C2);
+  static const Color test1 = Color(0xFF5CDB95);
+  static const Color backgroundColor = Color(0xFFD1FAE5);
 }
