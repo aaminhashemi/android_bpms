@@ -60,6 +60,7 @@ class _PersonnelListState extends State<PersonnelList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: Text('لیست پرسنل'),
         actions: [
@@ -79,8 +80,11 @@ class _PersonnelListState extends State<PersonnelList> {
         itemBuilder: (context, index) {
           var personnel = personnelList[index];
           return Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
             elevation: 4.0,
-            color: CustomColor.primaryColor,
+            color: CustomColor.cardColor,
             margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: ListTile(
               leading: CircleAvatar(
@@ -134,6 +138,7 @@ class PersonnelDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: Text(personnel['fullname']),
       ),
@@ -143,7 +148,7 @@ class PersonnelDetails extends StatelessWidget {
           children: [
             Card(
               elevation: 4.0,
-              color: CustomColor.primaryColor,
+              color: CustomColor.cardColor,
               margin: EdgeInsets.all(16.0),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),

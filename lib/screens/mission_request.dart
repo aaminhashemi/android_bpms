@@ -336,6 +336,7 @@ class _MissionRequestState extends State<MissionRequest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: Text('درخواست ماموریت'),
       ),
@@ -345,7 +346,10 @@ class _MissionRequestState extends State<MissionRequest> {
         padding: const EdgeInsets.all(16.0),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Card(
-            color: CustomColor.primaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            color: CustomColor.cardColor,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

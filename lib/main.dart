@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'irs',
         appBarTheme: AppBarTheme(
-        backgroundColor: CustomColor.primaryColor, // Set your desired background color for app bars
+        backgroundColor: CustomColor.test1, // Set your desired background color for app bars
       ),
     ),
       supportedLocales: const [

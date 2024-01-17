@@ -82,6 +82,7 @@ class _PayslipListState extends State<PayslipList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: Text('فیش حقوقی'),
         actions: [
@@ -101,7 +102,10 @@ class _PayslipListState extends State<PayslipList> {
               itemBuilder: (context, index) {
                 var payslip = payslipList[index];
                 return Card(
-                  color: CustomColor.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  color: CustomColor.cardColor,
                   elevation: 4.0,
                   margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   child: ListTile(
@@ -163,7 +167,8 @@ class PayslipDetails extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+        backgroundColor: CustomColor.backgroundColor,
+        appBar: AppBar(
         title: Text(' فیش حقوقی ${payslip['payment_period']} '),
       ),
       body: Container(

@@ -69,6 +69,7 @@ class _AssistanceState extends State<Assistance> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
         title: const Text('درخواست مساعده'),
       ),
@@ -80,7 +81,10 @@ class _AssistanceState extends State<Assistance> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Card(
-                color: CustomColor.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                color: CustomColor.cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -92,7 +96,7 @@ class _AssistanceState extends State<Assistance> {
                           fontWeight: FontWeight.normal,
                         ),
                       ),
-                      SizedBox(width: 140),
+                      Spacer(),
                       InkWell(
                         onTap: () {
                           Navigator.push(
@@ -121,7 +125,10 @@ class _AssistanceState extends State<Assistance> {
                 ),
               ),
               Card(
-                color: CustomColor.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                color: CustomColor.cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -226,8 +233,11 @@ class _AllAssistanceListState extends State<AllAssistances> {
         itemBuilder: (context, index) {
           var assistance = allAssistancelList[index];
           return Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
             elevation: 4.0,
-            color: CustomColor.primaryColor,
+            color: CustomColor.cardColor,
             margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: ExpansionTile(
               shape: LinearBorder.none,
@@ -249,7 +259,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
                 child: Container(
                   padding: EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    color: CustomColor.primaryColor,
+                    color: CustomColor.cardColor,
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                   child: Text(
