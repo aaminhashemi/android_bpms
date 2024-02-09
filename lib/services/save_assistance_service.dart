@@ -11,6 +11,7 @@ class SaveAssistanceService {
   SaveAssistanceService(this.assistanceUrl);
 
   Future<Map<String, dynamic>> saveAssistance(String date, String value) async {
+    print(date);
     final token = await authService.getToken();
     final response = await http.post(
       Uri.parse(assistanceUrl),
@@ -31,6 +32,8 @@ class SaveAssistanceService {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     });
+    print(json.decode(response.body));
+
     if (response.statusCode == 200) {
       return json.decode(response.body);
     }else{
