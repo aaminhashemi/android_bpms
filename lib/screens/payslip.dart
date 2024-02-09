@@ -1,16 +1,13 @@
-import '../services/user_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import '../services/auth_service.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-
 import '../utils/custom_color.dart';
 import '../widgets/app_drawer.dart';
+import '../utils/consts.dart';
+import '../utils/exception_consts.dart';
+import '../services/auth_service.dart';
 
 void main() {
   runApp(MyApp());
@@ -36,7 +33,7 @@ class PayslipList extends StatefulWidget {
 
 class _PayslipListState extends State<PayslipList> {
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
-
+  bool isLoading = true;
   List<dynamic> payslipList = [];
 
   @override
@@ -46,6 +43,9 @@ class _PayslipListState extends State<PayslipList> {
   }
 
   Future<void> fetchData() async {
+    setState(() {
+      isLoading = true;
+    });
     final accessToken = await authService.getToken();
     if (accessToken != null) {
       final validAccessToken =
@@ -68,9 +68,13 @@ class _PayslipListState extends State<PayslipList> {
     if (response.statusCode == 200) {
       setState(() {
         payslipList = json.decode(response.body);
+        isLoading = false;
       });
     } else {
-      throw Exception('فیش های حقوقی پرسنل دریافت نشد.');
+      setState(() {
+        isLoading = false;
+      });
+      throw Exception(Exception_consts.dataFetchError);
     }
   }
 
@@ -84,7 +88,7 @@ class _PayslipListState extends State<PayslipList> {
     return Scaffold(
       backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
-        title: Text('فیش حقوقی'),
+        title: Text(Consts.payslip),
         actions: [
           IconButton(
             icon: Icon(Icons.logout),
@@ -93,67 +97,90 @@ class _PayslipListState extends State<PayslipList> {
         ],
       ),
       drawer: AppDrawer(),
-      body: payslipList.isEmpty
+      body: (isLoading)
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : ListView.builder(
-              itemCount: payslipList.length,
-              itemBuilder: (context, index) {
-                var payslip = payslipList[index];
-                return Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  color: CustomColor.cardColor,
-                  elevation: 4.0,
-                  margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: ListTile(
-                    title: Text(
-                      ' دوره: ${payslip['payment_period']} ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
+          : (payslipList.isEmpty)
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    width: double.infinity, // Set the width to full width
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      color: CustomColor.cardColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Container(
+                          child: Text(Consts.noPayslipWasFound,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
                     ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ' مبلغ :  ${payslip['price']}  ریال ',
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'وضعیت : ${payslip['level']} ',
-                          style: TextStyle(
-                            color: Colors.green,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          ' تاریخ پرداخت ${payslip['payment_date']} ',
-                          style: TextStyle(
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: Icon(Icons.arrow_forward),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PayslipDetails(payslip),
-                        ),
-                      );
-                      },
                   ),
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  itemCount: payslipList.length,
+                  itemBuilder: (context, index) {
+                    var payslip = payslipList[index];
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      color: CustomColor.cardColor,
+                      elevation: 4.0,
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: ListTile(
+                        title: Text(
+                          ' ${Consts.period}: ${payslip['payment_period']} ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ' ${Consts.value} :  ${payslip['price']}  ${Consts.priceUnit} ',
+                              style: TextStyle(
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              ' ${Consts.status} : ${payslip['level']} ',
+                              style: TextStyle(
+                                color: Colors.green,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              ' ${Consts.paymentDate} ${payslip['payment_date']} ',
+                              style: TextStyle(
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Icon(Icons.arrow_forward),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PayslipDetails(payslip),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
     );
   }
 }
@@ -163,17 +190,37 @@ class PayslipDetails extends StatelessWidget {
 
   PayslipDetails(this.payslip);
 
-  @override
+  _launchURL() async {
+    final url = 'https://afkhambpms.ir/api1/files/show/${payslip['license']}';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: CustomColor.backgroundColor,
-        appBar: AppBar(
-        title: Text(' فیش حقوقی ${payslip['payment_period']} '),
+      backgroundColor: CustomColor.backgroundColor,
+      appBar: AppBar(
+        title: Text(' ${Consts.payslip} ${payslip['payment_period']} '),
       ),
       body: Container(
-        child: SfPdfViewer.network('https://afkhambpms.ir/api1/files/show/${payslip['license']}'),
-      )
+        child: Column(
+          children: [
+            Expanded(
+                child: Container(
+              child: SfPdfViewer.network(
+                  'https://afkhambpms.ir/api1/files/show/${payslip['license']}'),
+            )),
+            ElevatedButton(
+              onPressed: _launchURL,
+              child: Text(Consts.download),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
