@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-
-import '../services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:shamsi_date/shamsi_date.dart';
+import '../utils/consts.dart';
+import '../utils/exception_consts.dart';
 import '../services/loan_service.dart';
 import '../utils/custom_color.dart';
 import '../utils/custom_notification.dart';
 import '../widgets/app_drawer.dart';
-import 'package:flutter/material.dart';
-import 'package:shamsi_date/shamsi_date.dart';
+import '../services/auth_service.dart';
 
 class Loan extends StatefulWidget {
   @override
@@ -57,12 +58,13 @@ class _LoanState extends State<Loan> {
         repaymentCountController.text.trim(),
         reasonController.text.trim(),
       );
-      print(response);
+
       if (response['status'] == 'successful') {
         CustomNotification.showCustomSuccess(
           context,
           'درخواست وام با موفقیت ثبت شد.',
         );
+        Navigator.pushReplacementNamed(context, '/loan');
       } else {
         CustomNotification.showCustomWarning(
           context,
@@ -84,7 +86,7 @@ class _LoanState extends State<Loan> {
     return Scaffold(
       backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
-        title: const Text('درخواست وام'),
+        title: const Text(Consts.loanRequest),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
@@ -100,60 +102,12 @@ class _LoanState extends State<Loan> {
                 color: CustomColor.cardColor,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        'لیست درخواست ها',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                      Spacer(),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AllLoans(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: CustomColor.warningColor,
-                            // Set your desired background color
-                            borderRadius: BorderRadius.circular(
-                                10.0), // Adjust the radius as needed
-                          ),
-                          child: Text(
-                            'مشاهده',
-                            style: TextStyle(
-                                // Add text styles here if needed
-                                ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                color: CustomColor.cardColor,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
                       Text(
-                        'ثبت درخواست وام',
+                        Consts.saveLoanRequest,
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.normal,
-                        ),
+                            fontSize: 16, fontWeight: FontWeight.normal),
                       ),
                       SizedBox(height: 16.0),
                       _buildDateTextField(),
@@ -181,7 +135,7 @@ class _LoanState extends State<Loan> {
       controller: dateController,
       readOnly: true,
       decoration: InputDecoration(
-        labelText: 'تاریخ',
+        labelText: Consts.requestDate,
         border: OutlineInputBorder(),
         contentPadding: const EdgeInsets.all(12.0),
       ),
@@ -210,7 +164,7 @@ class _LoanState extends State<Loan> {
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(
-        labelText: 'مبلغ (ریال)',
+        labelText: '${Consts.value} (${Consts.priceUnit})',
         border: OutlineInputBorder(),
         contentPadding: const EdgeInsets.all(12.0),
       ),
@@ -223,7 +177,7 @@ class _LoanState extends State<Loan> {
       keyboardType: TextInputType.text,
       maxLines: 3,
       decoration: InputDecoration(
-        labelText: 'توضیحات',
+        labelText: Consts.description,
         border: OutlineInputBorder(),
         contentPadding: const EdgeInsets.all(12.0),
       ),
@@ -235,7 +189,7 @@ class _LoanState extends State<Loan> {
       controller: repaymentCountController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-        labelText: 'تعداد اقساط پیشنهادی',
+        labelText: Consts.requestedRepaymentCount,
         border: OutlineInputBorder(),
         contentPadding: const EdgeInsets.all(12.0),
       ),
@@ -247,9 +201,7 @@ class _LoanState extends State<Loan> {
       onPressed: isLoading ? null : save,
       child: isLoading
           ? CircularProgressIndicator() // Show loading indicator
-          : Text(
-              'ثبت',
-            ),
+          : Text(Consts.save),
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(double.infinity, 48),
         primary: CustomColor.buttonColor,
@@ -260,7 +212,7 @@ class _LoanState extends State<Loan> {
 
 void main() {
   runApp(MaterialApp(
-    home: Loan(),
+    home: AllLoans(),
   ));
 }
 
@@ -271,7 +223,9 @@ class AllLoans extends StatefulWidget {
 
 class _AllLoanListState extends State<AllLoans> {
   List<dynamic> allLoanlList = [];
-  late List<bool> _isExpandedList=List.generate(allLoanlList.length, (index) => false);
+  late List<bool> _isExpandedList =
+      List.generate(allLoanlList.length, (index) => false);
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -280,144 +234,269 @@ class _AllLoanListState extends State<AllLoans> {
   }
 
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomColor.backgroundColor,
-      appBar: AppBar(
-        title: Text('لیست درخواست های وام'),
-      ),
-      body: allLoanlList.isEmpty
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : ListView.builder(
-              itemCount: allLoanlList.length,
-              itemBuilder: (context, index) {
-                var loan = allLoanlList[index];
-                return Card(
-                  color: CustomColor.cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  elevation: 4.0,
-                  margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  child: ExpansionTile(
-                    onExpansionChanged: (isExpanded) {
-                      setState(() {
-                        _isExpandedList[index] = isExpanded;
-                      });
-                    },
-                    leading: _isExpandedList[index]
-                        ? Icon(Icons.keyboard_arrow_up) // Up arrow when expanded
-                        : Icon(Icons.keyboard_arrow_down), // Down arrow when collapsed
-                    shape: LinearBorder.none,
-                    title: Text(
-                      ' تاریخ درخواست : ${loan['jalali_request_date']} ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        fontSize: 13.0,
-                      ),
-                    ),
-                    subtitle: Text(
-                      'مبلغ درخواستی  : ${loan['formatted_requested_value']} ریال ',
-                      style: TextStyle(
-                        fontStyle: FontStyle.normal,
-                        fontSize: 13.0,
-                      ),
-                    ),
-                    trailing: InkWell(
-                      child: Container(
-                        padding: EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: CustomColor.primaryColor,
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: Text(
-                          '${loan['level']}',
-                          style: TextStyle(),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, '/personnel');
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: CustomColor.backgroundColor,
+        appBar: AppBar(
+          title: Text(Consts.loansList),
+        ),
+        drawer: AppDrawer(),
+        body: SingleChildScrollView(
+            child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              width: double.infinity,
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                color: CustomColor.cardColor,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Text(
+                        'درخواست وام',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
                         ),
                       ),
-                    ),
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: [
-                            Row(
-                             children: [
-                               RichText(
-                                 text: TextSpan(
-                                   style: DefaultTextStyle.of(context).style,
-                                   children: [
-                                     TextSpan(
-                                       text: 'تعداد اقساط : ',
-                                       style: TextStyle(fontWeight: FontWeight.bold),
-                                     ),
-                                     TextSpan(
-                                       text: '${loan['repayment_count']} ',
-                                       style: TextStyle(
-                                         fontStyle: FontStyle.normal,
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                               Spacer(),
-                               RichText(
-                                 text: TextSpan(
-                                   style: DefaultTextStyle.of(context).style,
-                                   children: [
-                                     TextSpan(
-                                       text: 'مبلغ هر قسط : ',
-                                       style: TextStyle(fontWeight: FontWeight.bold),
-                                     ),
-                                     TextSpan(
-                                       text: '${loan['formatted_repayment_value']} ریال',
-                                       style: TextStyle(
-                                         fontStyle: FontStyle.normal,
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                             ],
+                      Spacer(),
+                      InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Loan(),
                             ),
-                            Row(
-                                children: [
-                                  RichText(
-                                    text: TextSpan(
-                                      style: DefaultTextStyle.of(context).style,
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            color: CustomColor.warningColor,
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                Consts.create,
+                                style: TextStyle(),
+                              ),
+                              SizedBox(width: 8.0),
+                              Icon(Icons.arrow_circle_left),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          (isLoading)
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : (allLoanlList.isEmpty)
+                  ? Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Center(
+                        child: Card(
+                          elevation: 5,
+                          margin: EdgeInsets.all(16),
+                          child: Container(
+                            color: Colors.white10,
+                            padding: EdgeInsets.all(16),
+                            width: double.infinity,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/box.png',
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  Consts.noLoansFound,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ))
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: allLoanlList.length,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var loan = allLoanlList[index];
+                        return Card(
+                          color: CustomColor.cardColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          elevation: 4.0,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                          child: ExpansionTile(
+                            onExpansionChanged: (isExpanded) {
+                              setState(() {
+                                _isExpandedList[index] = isExpanded;
+                              });
+                            },
+                            leading: _isExpandedList[index]
+                                ? Icon(Icons.keyboard_arrow_up)
+                                : Icon(Icons.keyboard_arrow_down),
+                            shape: LinearBorder.none,
+                            title: Text(
+                              '${Consts.requestDate} : ${loan['jalali_request_date']} ',
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 13.0,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '${Consts.requestedValue} : ${loan['formatted_requested_value']} ${Consts.priceUnit} ',
+                              style: TextStyle(
+                                fontStyle: FontStyle.normal,
+                                fontSize: 13.0,
+                              ),
+                            ),
+                            trailing: InkWell(
+                              child: Container(
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: CustomColor.primaryColor,
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                child: Text(
+                                  '${loan['level']}',
+                                  style: TextStyle(),
+                                ),
+                              ),
+                            ),
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  children: [
+                                    Row(
                                       children: [
-                                        TextSpan(
-                                          text: 'مبلغ باقیمانده : ',
-                                          style: TextStyle(fontWeight: FontWeight.bold),
+                                        RichText(
+                                          text: TextSpan(
+                                            style: DefaultTextStyle.of(context)
+                                                .style,
+                                            children: [
+                                              TextSpan(
+                                                text:
+                                                    '${Consts.repaymentCount}',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              (loan['repayment_count'] == null)
+                                                  ? TextSpan(
+                                                      text: '0',
+                                                      style: TextStyle(
+                                                        fontStyle:
+                                                            FontStyle.normal,
+                                                      ),
+                                                    )
+                                                  : TextSpan(
+                                                      text:
+                                                          '${loan['repayment_count']} ',
+                                                      style: TextStyle(
+                                                        fontStyle:
+                                                            FontStyle.normal,
+                                                      ),
+                                                    ),
+                                            ],
+                                          ),
                                         ),
-                                        TextSpan(
-                                          text: '${loan['formatted_residue_value']} ریال',
-                                          style: TextStyle(
-                                            fontStyle: FontStyle.normal,
+                                        Spacer(),
+                                        RichText(
+                                          text: TextSpan(
+                                            style: DefaultTextStyle.of(context)
+                                                .style,
+                                            children: [
+                                              TextSpan(
+                                                text:
+                                                    '${Consts.repaymentValue}',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    '${loan['formatted_repayment_value']} ${Consts.priceUnit}',
+                                                style: TextStyle(
+                                                  fontStyle: FontStyle.normal,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  Spacer()
-                                ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                                    Row(
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            style: DefaultTextStyle.of(context)
+                                                .style,
+                                            children: [
+                                              TextSpan(
+                                                text: '${Consts.residueValue}',
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                              TextSpan(
+                                                text:
+                                                    '${loan['formatted_residue_value']} ${Consts.priceUnit}',
+                                                style: TextStyle(
+                                                  fontStyle: FontStyle.normal,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Spacer()
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+        ])),
+      ),
     );
   }
 
   Future<void> fetchData(BuildContext context) async {
     final AuthService authService = AuthService('https://afkhambpms.ir/api1');
     final token = await authService.getToken();
-
+    setState(() {
+      isLoading = true;
+    });
     final response = await http.get(
         Uri.parse('https://afkhambpms.ir/api1/personnels/get-loan'),
         headers: {
@@ -429,9 +508,13 @@ class _AllLoanListState extends State<AllLoans> {
     if (response.statusCode == 200) {
       setState(() {
         allLoanlList = json.decode(response.body);
+        isLoading = false;
       });
     } else {
-      throw Exception('خطا در دریافت داده ها');
+      setState(() {
+        isLoading = false;
+      });
+      throw Exception(Exception_consts.dataFetchError);
     }
   }
 }
