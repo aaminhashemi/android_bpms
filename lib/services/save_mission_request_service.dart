@@ -16,6 +16,8 @@ class SaveMissionRequestService {
       String end_date,
       String start_time,
       String end_time,
+      String origin,
+      String destination,
       String reason,
       String leave_type) async {
     final token = await authService.getToken();
@@ -32,6 +34,8 @@ class SaveMissionRequestService {
         'end_date': end_date,
         'start_time': start_time,
         'end_time': end_time,
+        'origin': origin,
+        'destination': destination,
         'reason': reason,
         'type': leave_type,
       }),
