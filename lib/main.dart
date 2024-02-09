@@ -1,5 +1,7 @@
-import 'package:android_bpms/screens/loan.dart';
-
+import 'package:afkham/screens/location.dart';
+import 'package:afkham/screens/path.dart';
+import 'package:afkham/screens/welcome.dart';
+import '../screens/loan.dart';
 import '../screens/assistance.dart';
 import '../screens/leave_request.dart';
 import '../screens/login.dart';
@@ -16,6 +18,7 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,24 +30,27 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'irs',
         appBarTheme: AppBarTheme(
-        backgroundColor: CustomColor.test1, // Set your desired background color for app bars
+          backgroundColor: CustomColor.test1,
+        ),
       ),
-    ),
       supportedLocales: const [
         Locale("fa", "IR"),
       ],
-      locale: const Locale("fa", "IR"),
-      title: 'Flutter Demo',
-      home: LoginScreen(),
-      routes:{
-        '/login':(context)=>LoginScreen(),
-        '/personnel':(context)=>PersonnelList(),
-        '/payslip':(context)=>PayslipList(),
-        '/assistance':(context)=>Assistance(),
-        '/loan':(context)=>Loan(),
-        '/leave-request':(context)=>LeaveRequest(),
-        '/mission-request':(context)=>MissionRequest(),
+      routes: {
+        '/home': (context) => WelcomeScreen(),
+        '/login': (context) => LoginScreen(),
+        '/personnel': (context) => PersonnelList(),
+        '/payslip': (context) => PayslipList(),
+        '/assistance': (context) => AllAssistances(),
+        '/loan': (context) => AllLoans(),
+        '/leave-request': (context) => AllLeaves(),
+        '/mission-request': (context) => AllMissions(),
+        '/loc': (context) => MyHomePage(),
+        // '/path': (context) => MyPathPage(),
       },
+      locale: const Locale("fa", "IR"),
+      title: 'افخم',
+      home: WelcomeScreen(),
     );
   }
 }
