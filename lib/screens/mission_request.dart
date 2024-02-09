@@ -1,4 +1,5 @@
-import '../utils/custom_color.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_linear_datepicker/flutter_datepicker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
@@ -6,6 +7,10 @@ import '../services/save_mission_request_service.dart';
 import '../utils/custom_notification.dart';
 import '../utils/standard_number_creator.dart';
 import '../widgets/app_drawer.dart';
+import '../utils/consts.dart';
+import '../utils/exception_consts.dart';
+import '../services/auth_service.dart';
+import '../utils/custom_color.dart';
 
 class MissionRequest extends StatefulWidget {
   @override
@@ -27,6 +32,8 @@ class _MissionRequestState extends State<MissionRequest> {
 
   bool isLoading = false;
   TextEditingController dateController = TextEditingController();
+  TextEditingController originController = TextEditingController();
+  TextEditingController destinationController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
   TextEditingController typeController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
@@ -36,8 +43,8 @@ class _MissionRequestState extends State<MissionRequest> {
   TimeOfDay? endTime;
   TextEditingController reasonController = TextEditingController();
 
-  String leaveType = 'انتخاب نوع ماموریت';
-  List<String> leaveTypes = ['انتخاب نوع ماموریت', 'روزانه', 'ساعتی'];
+  String leaveType = Consts.selectMissionType;
+  List<String> leaveTypes = [Consts.selectMissionType, Consts.daily, Consts.hourly];
 
   void clearHourFields() {
     startTime = null;
@@ -52,7 +59,7 @@ class _MissionRequestState extends State<MissionRequest> {
           controller: startDateController,
           readOnly: true,
           decoration: InputDecoration(
-            labelText: 'تاریخ شروع',
+            labelText: Consts.startDate,
             border: OutlineInputBorder(),
             contentPadding: const EdgeInsets.all(12.0),
           ),
@@ -65,7 +72,7 @@ class _MissionRequestState extends State<MissionRequest> {
           controller: endDateController,
           readOnly: true,
           decoration: InputDecoration(
-            labelText: 'تاریخ پایان',
+            labelText: Consts.endDate,
             border: OutlineInputBorder(),
             contentPadding: const EdgeInsets.all(12.0),
           ),
@@ -78,11 +85,14 @@ class _MissionRequestState extends State<MissionRequest> {
   }
 
   void showStartDateDialog(BuildContext context, controller) {
-    String selected = '';
+    DateTime dt = DateTime.now();
+    Jalali j = dt.toJalali();
+    final f = j.formatter;
+    String selected = '${f.yyyy}/${f.mm}/${f.dd}';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('انتخاب تاریخ شروع'),
+        title: Text(Consts.selectStartDate),
         content: Container(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -111,18 +121,16 @@ class _MissionRequestState extends State<MissionRequest> {
                   fontSize: 12.0,
                   color: Colors.blueGrey,
                 ),
-                yearText: "سال",
-                monthText: "ماه",
-                dayText: "روز",
+                yearText: Consts.year,
+                monthText: Consts.month,
+                dayText: Consts.day,
                 showLabels: true,
                 columnWidth: 90,
                 showMonthName: true,
                 isJalaali: true,
               ),
               ElevatedButton(
-                child: Text(
-                  "انتخاب",
-                ),
+                child: Text(Consts.select),
                 onPressed: () {
                   controller.text = selected;
                   Navigator.pop(context);
@@ -143,11 +151,15 @@ class _MissionRequestState extends State<MissionRequest> {
   }
 
   void showEndDateDialog(BuildContext context, controller) {
-    String selected = '';
+    DateTime dt = DateTime.now();
+    Jalali j = dt.toJalali();
+    final f = j.formatter;
+    String selected = '${f.yyyy}/${f.mm}/${f.dd}';
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('انتخاب تاریخ شروع'),
+        title: Text(Consts.selectEndDate),
         content: Container(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -176,18 +188,16 @@ class _MissionRequestState extends State<MissionRequest> {
                   fontSize: 12.0,
                   color: Colors.blueGrey,
                 ),
-                yearText: "سال",
-                monthText: "ماه",
-                dayText: "روز",
+                yearText: Consts.year,
+                monthText: Consts.month,
+                dayText: Consts.day,
                 showLabels: true,
                 columnWidth: 90,
                 showMonthName: true,
                 isJalaali: true,
               ),
               ElevatedButton(
-                child: Text(
-                  "انتخاب",
-                ),
+                child: Text(Consts.select),
                 onPressed: () {
                   controller.text = selected;
                   Navigator.pop(context);
@@ -209,7 +219,29 @@ class _MissionRequestState extends State<MissionRequest> {
       controller: dateController,
       readOnly: true,
       decoration: InputDecoration(
-        labelText: 'تاریخ درخواست',
+        labelText: Consts.requestDate,
+        border: OutlineInputBorder(),
+        contentPadding: const EdgeInsets.all(12.0),
+      ),
+    );
+  }
+
+  Widget _buildOriginTextField() {
+    return TextField(
+      controller: originController,
+      decoration: InputDecoration(
+        labelText: Consts.origin,
+        border: OutlineInputBorder(),
+        contentPadding: const EdgeInsets.all(12.0),
+      ),
+    );
+  }
+
+  Widget _buildDestinationTextField() {
+    return TextField(
+      controller: destinationController,
+      decoration: InputDecoration(
+        labelText: Consts.destination,
         border: OutlineInputBorder(),
         contentPadding: const EdgeInsets.all(12.0),
       ),
@@ -242,11 +274,10 @@ class _MissionRequestState extends State<MissionRequest> {
               startTime = pickedTime;
               startTimeController.text = MaterialLocalizations.of(context)
                   .formatTimeOfDay(pickedTime!);
-              //startTimeController.text=pickedTime.toString();
             });
           },
           decoration: InputDecoration(
-            labelText: 'ساعت شروع',
+            labelText: Consts.startTime,
             border: OutlineInputBorder(),
             contentPadding: const EdgeInsets.all(12.0),
           ),
@@ -267,7 +298,7 @@ class _MissionRequestState extends State<MissionRequest> {
 
               if (minutesStart > minutesEnd) {
                 CustomNotification.showCustomWarning(
-                    context, 'زمان پایان نمی تواند زودتر از زمان شروع باشد.');
+                    context, Consts.endTimeCantBeLessThanStartTime);
                 endTimeController.text = '';
               } else {
                 endTimeController.text = MaterialLocalizations.of(context)
@@ -276,7 +307,7 @@ class _MissionRequestState extends State<MissionRequest> {
             });
           },
           decoration: InputDecoration(
-            labelText: 'ساعت پایان',
+            labelText: Consts.endTime,
             border: OutlineInputBorder(),
             contentPadding: const EdgeInsets.all(12.0),
           ),
@@ -292,10 +323,10 @@ class _MissionRequestState extends State<MissionRequest> {
     final apiUrl = 'https://afkhambpms.ir/api1/personnels/save_mission_request';
     var type = '';
     switch (leaveType) {
-      case 'روزانه':
+      case Consts.daily:
         type = 'daily';
         break;
-      case 'ساعتی':
+      case Consts.hourly:
         type = 'hourly';
         break;
       default:
@@ -310,23 +341,20 @@ class _MissionRequestState extends State<MissionRequest> {
           endDateController.text.trim(),
           StandardNumberCreator.convert(startTimeController.text.trim()),
           StandardNumberCreator.convert(endTimeController.text.trim()),
+          originController.text.trim(),
+          destinationController.text.trim(),
           reasonController.text.trim(),
           type);
       print(response);
       if (response['status'] == 'successful') {
-        CustomNotification.showCustomSuccess(
-          context,
-          'درخواست ماموریت با موفقیت ثبت شد.',
-        );
+        CustomNotification.showCustomDanger(context, Consts.missionSavedSuccessfully);
+        Navigator.pushReplacementNamed(context, '/mission-request');
       } else {
-        CustomNotification.showCustomWarning(
-          context,
-          'اطلاعات را به صورت کامل وارد کنید.',
-        );
+        CustomNotification.showCustomDanger(context, Consts.pleaseEnterDataCompletely);
       }
     } catch (e) {
-      CustomNotification.showCustomDanger(context,'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
-    }finally {
+      CustomNotification.showCustomDanger(context, Exception_consts.ConnectionError);
+    } finally {
       setState(() {
         isLoading = false;
       });
@@ -338,124 +366,395 @@ class _MissionRequestState extends State<MissionRequest> {
     return Scaffold(
       backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
-        title: Text('درخواست ماموریت'),
+        title: Text(Consts.missionRequest),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
-        child:Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-            ),
-            color: CustomColor.cardColor,
+        child: Align(
+          alignment: Alignment.center,
+          child: Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(
-                    'درخواست ماموریت',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                  SizedBox(height: 16.0),
-                  _buildDateTextField(),
-                  SizedBox(height: 16.0),
-                  InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'نوع ماموریت',
-                      border: OutlineInputBorder(),
-                      contentPadding: const EdgeInsets.all(12.0),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: leaveType,
-                        onChanged: (newValue) {
-                          setState(() {
-                            leaveType = newValue!;
-                            clearHourFields();
-                          });
-                        },
-                        items: leaveTypes.map((type) {
-                          return DropdownMenuItem<String>(
-                            value: type,
-                            child: Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 12.0),
-                              child: Text(
-                                type,
-                                style: TextStyle(
-                                  fontSize: 16,
+                  Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      color: CustomColor.cardColor,
+                      child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child:
+                              Column(mainAxisSize: MainAxisSize.min, children: [
+                            Text(
+                              Consts.missionRequest,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            SizedBox(height: 16.0),
+                            _buildDateTextField(),
+                            SizedBox(height: 16.0),
+                            InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: Consts.missionType,
+                                border: OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.all(12.0),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: leaveType,
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      leaveType = newValue!;
+                                      clearHourFields();
+                                    });
+                                  },
+                                  items: leaveTypes.map((type) {
+                                    return DropdownMenuItem<String>(
+                                      value: type,
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 16.0, vertical: 12.0),
+                                        child: Text(
+                                          type,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16,
+                                  ),
+                                  isExpanded: true,
+                                  icon: Icon(Icons.arrow_drop_down),
+                                  elevation: 3,
+                                  underline: Container(
+                                    height: 0,
+                                    color: Colors.transparent,
+                                  ),
                                 ),
                               ),
                             ),
-                          );
-                        }).toList(),
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                        ),
-                        isExpanded: true,
-                        icon: Icon(Icons.arrow_drop_down),
-                        elevation: 3,
-                        underline: Container(
-                          height: 0,
-                          color: Colors.transparent,
-                        ),
-                      ),
-                    ),
-                  ),
-                  (leaveType != 'انتخاب نوع ماموریت')
-                      ? (leaveType == 'روزانه'
-                          ? buildDateFields()
-                          : buildHourFields())
-                      : removeFields(),
-                  SizedBox(height: 16.0),
-                  TextField(
-                      controller: reasonController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText: 'علت',
-                        border: OutlineInputBorder(),
-                        contentPadding: const EdgeInsets.all(12.0),
-                      ),
-                      style: TextStyle(
-                        fontFamily:
-                            'irs',
+                            (leaveType != Consts.selectMissionType)
+                                ? (leaveType == Consts.daily
+                                    ? buildDateFields()
+                                    : buildHourFields())
+                                : removeFields(),
+                            SizedBox(height: 16.0),
+                            _buildOriginTextField(),
+                            SizedBox(height: 16.0),
+                            _buildDestinationTextField(),
+                            SizedBox(height: 16.0),
+                            TextField(
+                                controller: reasonController,
+                                maxLines: 3,
+                                decoration: InputDecoration(
+                                  labelText: Consts.reason,
+                                  border: OutlineInputBorder(),
+                                  contentPadding: const EdgeInsets.all(12.0),
+                                ),
+                                style: TextStyle(
+                                  fontFamily: 'irs',
+                                )),
+                            SizedBox(height: 24.0),
+                            ElevatedButton(
+                                onPressed:
+                                    isLoading ? null : submitMissionRequest,
+                                child: isLoading
+                                    ? CircularProgressIndicator()
+                                    : Text(Consts.save,),
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 48),
+                                  maximumSize: const Size(double.infinity, 48),
+                                  primary: CustomColor.buttonColor,
+                                )
+                            ),
+                          ]
+                        )
                       )
-                  ),
-                  SizedBox(height: 24.0),
-                  ElevatedButton(
-                      onPressed: isLoading ? null : submitMissionRequest ,
-                      child: isLoading
-                          ? CircularProgressIndicator()
-                          : Text(
-                        'ثبت',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
-                        maximumSize: const Size(double.infinity, 48),
-                        primary: CustomColor
-                            .buttonColor,
-                      )),
+                  )
                 ],
               ),
             ),
           ),
-        ]),
-      ),
+        ),
       ),
     );
   }
 }
 
+class AllMissions extends StatefulWidget {
+  @override
+  _AllMissionsListState createState() => _AllMissionsListState();
+}
+
+class _AllMissionsListState extends State<AllMissions> {
+  List<dynamic> allMissionsList = [];
+  bool isLoading = true;
+  late List<bool> _isExpandedList =
+      List.generate(allMissionsList.length, (index) => false);
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData(context);
+  }
+
+  Widget build(BuildContext context) {
+    return WillPopScope(
+        onWillPop: () async {
+          Navigator.pushReplacementNamed(context, '/personnel');
+          return false;
+        },
+        child: Scaffold(
+          backgroundColor: CustomColor.backgroundColor,
+          appBar: AppBar(
+            title: Text(Consts.missionsList),
+          ),
+          drawer: AppDrawer(),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    width: double.infinity,
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      color: CustomColor.cardColor,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              Consts.missionRequest,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            Spacer(),
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => MissionRequest(),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: CustomColor.warningColor,
+                                  borderRadius: BorderRadius.circular(10.0),),
+                                child: Row(
+                                  children: [
+                                    Text(Consts.create),
+                                    SizedBox(width: 8.0),
+                                    Icon(Icons.arrow_circle_left),
+                                  ],
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                (isLoading)
+                    ? Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : (allMissionsList.isEmpty)
+                        ?
+                Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child:
+                Center(
+                  child: Card(
+                    elevation: 5,
+
+                    margin: EdgeInsets.all(16),
+                    child: Container(
+                      color: Colors.white10,
+                      padding: EdgeInsets.all(16),
+                      width: double.infinity,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/box.png',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            Consts.noMissionsFound,
+                            style: TextStyle(
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: allMissionsList.length,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemBuilder: (context, index) {
+                              var mission = allMissionsList[index];
+                              return Card(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                elevation: 4.0,
+                                color: CustomColor.cardColor,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 16.0, vertical: 8.0),
+                                child: ExpansionTile(
+                                  onExpansionChanged: (isExpanded) {
+                                    setState(() {
+                                      _isExpandedList[index] = isExpanded;
+                                    });
+                                  },
+                                  leading: _isExpandedList[index]
+                                      ? Icon(Icons.keyboard_arrow_up)
+                                      : Icon(Icons.keyboard_arrow_down),
+                                  shape: LinearBorder.none,
+                                  title: Text('${Consts.requestDate} : ${mission['jalali_request_date']} ',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0,),
+                                  ),
+                                  subtitle: Text('${Consts.missionType}  : ${mission['type']}  ',
+                                    style: TextStyle(fontStyle: FontStyle.italic,),
+                                  ),
+                                  trailing: InkWell(
+                                    child: (mission['status'] == 'recorded')
+                                        ? Container(
+                                            padding: EdgeInsets.all(8.0),
+                                            decoration: BoxDecoration(
+                                              color: CustomColor.cardColor,
+                                              borderRadius: BorderRadius.circular(10.0),),
+                                            child: Text('${mission['level']}', style: TextStyle(),),
+                                          )
+                                        : (mission['status'] == 'accepted')
+                                            ? Container(
+                                                padding: EdgeInsets.all(8.0),
+                                                decoration: BoxDecoration(
+                                                  color: CustomColor.successColor,
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                ),
+                                                child: Text('${mission['level']}', style: TextStyle(),),
+                                              )
+                                            : Container(
+                                                padding: EdgeInsets.all(8.0),
+                                                decoration: BoxDecoration(
+                                                  color: CustomColor.dangerColor,
+                                                  borderRadius: BorderRadius.circular(10.0),
+                                                ),
+                                                child: Text('${mission['level']}', style: TextStyle()),
+                                              ),
+                                  ),
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text('${Consts.start} : ${mission['start']}  ',
+                                                style: TextStyle(fontStyle: FontStyle.italic,),
+                                              ),
+                                              Spacer(),
+                                              Text('${Consts.end} : ${mission['end']}  ',
+                                                style: TextStyle(fontStyle: FontStyle.italic,),
+                                              ),
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Text('${Consts.description} : ${mission['reason']}',
+                                                  style: TextStyle(fontStyle: FontStyle.italic),
+                                                  overflow:
+                                                      TextOverflow.visible,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (mission['description'] != null)
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Expanded(
+                                                  child: Text('${Consts.SuperiorDescription} : ${mission['description']}',
+                                                    style: TextStyle(fontStyle: FontStyle.italic,),
+                                                    overflow: TextOverflow.visible,),
+                                                ),
+                                              ],
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+              ],
+            ),
+          ),
+        ));
+  }
+
+  Future<void> fetchData(BuildContext context) async {
+    final AuthService authService = AuthService('https://afkhambpms.ir/api1');
+    final token = await authService.getToken();
+    setState(() {
+      isLoading = true;
+    });
+    final response = await http.get(
+        Uri.parse('https://afkhambpms.ir/api1/personnels/get-mission'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        });
+
+    if (response.statusCode == 200) {
+      setState(() {
+        allMissionsList = json.decode(response.body);
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      throw Exception(Exception_consts.dataFetchError);
+    }
+  }
+}
+
 void main() {
   runApp(MaterialApp(
-    home: MissionRequest(),
+    home: AllMissions(),
   ));
 }
