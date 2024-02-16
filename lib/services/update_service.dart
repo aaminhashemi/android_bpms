@@ -7,6 +7,12 @@ class UpdateService {
 
   UpdateService(this.baseUrl);
 
+  Future<String> getVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    print(packageInfo.version);
+    return packageInfo.version;
+  }
+
   Future<Map<String, dynamic>> check() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final response = await http.post(
