@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +8,7 @@ class AuthService {
   final String baseUrl;
   static const String tokenKey = 'access_token';
   static const String infoKey = 'user_info';
+  static const String codeKey = 'user_national_code';
 
   AuthService(this.baseUrl);
 
@@ -21,14 +23,43 @@ class AuthService {
     return json.decode(response.body);
   }
 
+  Future<Map<String, dynamic>> checkMobile(String mobile) async {
+    final response =
+        await http.post(Uri.parse('$baseUrl/change-pass/check-mobile'),
+            body: jsonEncode({
+              'mobile': mobile,
+            }),
+            headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        });
+    return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> checkCode(String mobile, String code) async {
+    final response =
+        await http.post(Uri.parse('$baseUrl/change-pass/check-code'),
+            body: jsonEncode({
+              'mobile': mobile,
+              'code': code,
+            }),
+            headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        });
+    return json.decode(response.body);
+  }
+
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(tokenKey);
   }
 
-  Future<String?> getInfo() async {
+  Future<Map<String, dynamic>> getInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(infoKey);
+    List<String> dataArray = ['item1', 'item2', 'item3'];
+    Map<String, List<String>> dataMap = {'yourKey': dataArray};
+    return {'name': prefs.getString(infoKey), 'code': prefs.getString(codeKey)};
   }
 
   Future<void> saveToken(String token) async {
@@ -36,9 +67,10 @@ class AuthService {
     await prefs.setString(tokenKey, token);
   }
 
-  Future<void> saveInfo(String userName) async {
+  Future<void> saveInfo(String userName, String code) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(infoKey, userName);
+    await prefs.setString(codeKey, code);
   }
 
   Future<void> removeToken() async {
@@ -55,8 +87,6 @@ class AuthService {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
       });
-      print(response);
-
       if (response.statusCode == 200) {
         print(response);
         return response.bodyBytes;
@@ -84,24 +114,57 @@ class AuthService {
     }
   }
 
+  Future<Map<String, dynamic>> changePassword(String password) async {
+    final accessToken = await getToken();
+    final response = await http.post(
+      Uri.parse('https://afkhambpms.ir/api1/change-pass/change-password'),
+      body: jsonEncode({
+        'password': password,
+      }),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+    return json.decode(response.body);
+  }
+
   Future<void> logout() async {
-    await removeToken();
+    final token = await getToken();
+    final response = await http.get(Uri.parse('${baseUrl}/logout'), headers: {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    });
+    if (response.statusCode == 200) {
+      await removeToken();
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final imagePath = prefs.getString('profile_picture_path');
+        File file = File(imagePath!);
+        if (await file.exists()) {
+          await file.delete();
+          print('File deleted successfully.');
+        } else {
+          print('File does not exist.');
+        }
+        prefs.remove('profile_picture_path');
+      } catch (e) {
+        print('Error deleting file: $e');
+      }
+    }
   }
 
   Future<String> loadImageFromPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final imagePath = prefs.getString('profile_picture_path');
-      print('object');
-      print(imagePath);
-      print('object');
       if (imagePath != null) {
         return imagePath;
       } else {
-        return 'assets/images/logo.png';
+        return 'assets/images/ic_launcher.png';
       }
     } catch (e) {
-      return 'assets/images/logo.png';
+      return 'assets/images/ic_launcher.png';
     }
   }
 }
