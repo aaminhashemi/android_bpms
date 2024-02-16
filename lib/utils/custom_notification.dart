@@ -39,4 +39,66 @@ class CustomNotification{
         ),
       );
     }
+
+    static void show(BuildContext context,String title,String message,String route){
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            title: Text(title,style: TextStyle(fontSize: 16)),
+            content: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+                (route=='')? '' :
+                Navigator.pushReplacementNamed(context, route);
+                ;
+              },
+
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(message),
+                  SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Spacer(),
+                      (route=='')?
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          primary: CustomColor.successColor,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('باشه'),
+                      ):
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          primary: CustomColor.successColor,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushReplacementNamed(context, route);
+                        },
+                        child: Text('باشه'),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
 }
