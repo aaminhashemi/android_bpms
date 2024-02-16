@@ -1,16 +1,18 @@
-import 'package:afkham/screens/location.dart';
-import 'package:afkham/screens/path.dart';
-import 'package:afkham/screens/welcome.dart';
+import 'package:and/screens/otp_login.dart';
+import 'package:and/screens/payslip.dart';
+import 'package:and/screens/verify_mobile.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import '../screens/location.dart';
+import '../screens/welcome.dart';
 import '../screens/loan.dart';
 import '../screens/assistance.dart';
 import '../screens/leave_request.dart';
 import '../screens/login.dart';
 import '../screens/mission_request.dart';
-import '../screens/personnel.dart';
-import '../screens/payslip.dart';
+import '../screens/home.dart';
 import '../utils/custom_color.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -30,7 +32,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: 'irs',
         appBarTheme: AppBarTheme(
-          backgroundColor: CustomColor.test1,
+          backgroundColor: CustomColor.backgroundColor,
         ),
       ),
       supportedLocales: const [
@@ -39,14 +41,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => WelcomeScreen(),
         '/login': (context) => LoginScreen(),
-        '/personnel': (context) => PersonnelList(),
-        '/payslip': (context) => PayslipList(),
+        '/login-otp': (context) => OtpLoginScreen(),
+        '/main': (context) => Home(),
         '/assistance': (context) => AllAssistances(),
         '/loan': (context) => AllLoans(),
         '/leave-request': (context) => AllLeaves(),
         '/mission-request': (context) => AllMissions(),
+        '/verify-mobile': (context) => VerifyMobileScreen(),
         '/loc': (context) => MyHomePage(),
-        // '/path': (context) => MyPathPage(),
+        '/payslip': (context) => PayslipList(),
       },
       locale: const Locale("fa", "IR"),
       title: 'افخم',
