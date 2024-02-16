@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import 'auth_service.dart';
 
 class ActionService {
@@ -26,4 +25,5 @@ class ActionService {
         });
     return json.decode(response.body);
   }
+
 }
