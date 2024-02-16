@@ -55,7 +55,7 @@ class Consts{
   static const String pleaseEnterDataCompletely='لطفا اطلاعات را به صورت کامل وارد نمایید.';
   static const String endTimeCantBeLessThanStartTime='زمان پایان نمی تواند زودتر از زمان شروع باشد.';
 
-  static const String missionRequest='درخواست ماموریت';
+  static const String missionRequest='درخواست ماموریت جدید';
   static const String requestedValue='مبلغ درخواستی';
   static const String repaymentCount='تعداد اقساط';
   static const String repaymentValue='مبلغ هر قسط';
@@ -65,11 +65,11 @@ class Consts{
   static const String requestDate='تاریخ درخواست';
   static const String selectMissionType='انتخاب نوع ماموریت';
   static const String SuperiorDescription='توضیحات سرپرست';
-  static const String missionsList='لیست ماموریت ها';
-  static const String loansList='لیست درخواست های وام';
+  static const String missionsList='ماموریت';
+  static const String loansList='وام';
   static const String requestedRepaymentCount='تعداد اقساط پیشنهادی';
   static const String saveLoanRequest='ثبت درخواست وام';
-  static const String loanRequest='درخواست وام';
+  static const String loanRequest='درخواست وام جدید';
   static const String missionType='نوع ماموریت';
 
 
