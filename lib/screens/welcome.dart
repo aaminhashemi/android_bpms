@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/update_service.dart';
 import '../services/auth_service.dart';
 import '../utils/consts.dart';
+import '../utils/custom_color.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeState extends State<WelcomeScreen> {
+  String version = '';
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
   final UpdateService updateService =
       UpdateService('https://afkhambpms.ir/api1/update');
@@ -37,7 +39,7 @@ class _WelcomeState extends State<WelcomeScreen> {
           await authService.isAccessTokenValid(accessToken);
       await Future.delayed(Duration(seconds: 3));
       (validAccessToken)
-          ? Navigator.pushReplacementNamed(context, '/personnel')
+          ? Navigator.pushReplacementNamed(context, '/main')
           : Navigator.pushReplacementNamed(context, '/login');
     } else {
       await Future.delayed(Duration(seconds: 3));
@@ -46,9 +48,12 @@ class _WelcomeState extends State<WelcomeScreen> {
   }
 
   void checkForAvailableUpdate() async {
+    final versionNumber = await updateService.getVersion();
+    setState(() {
+      version = versionNumber;
+    });
     final response = await updateService.check();
     if (response['status'] == 'successful') {
-      print('hi');
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -86,19 +91,43 @@ class _WelcomeState extends State<WelcomeScreen> {
 
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              backgroundImage:
-                  AssetImage('assets/images/logo.png') as ImageProvider,
-              radius: 60.0,
+      backgroundColor: CustomColor.backgroundColor,
+      body: Stack(
+        children: [
+          // Logo at the center
+          Center(
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/logo.png'),
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
-            SizedBox(height: 16),
-            Text(Consts.applicationTitle, style: TextStyle(fontSize: 20)),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 30,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                children: [
+                  Text(
+                    'سامانه BPMS',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    ' نسخه ${version}',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
