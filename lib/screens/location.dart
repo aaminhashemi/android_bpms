@@ -38,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<String> typeList = ['انتخاب', 'ورود', 'خروج', 'مرخصی', 'ماموریت'];
   List<dynamic> targetLatitudes = [];
   List<dynamic> targetLongitudes = [];
-  double distanceThreshold = 20.0;
+  late double distanceThreshold;
   late double distance;
 
   void setInitialDate() {
@@ -70,9 +70,11 @@ class _MyHomePageState extends State<MyHomePage> {
         });
     if (response.statusCode == 200) {
       var res = json.decode(response.body);
+      print(json.decode(response.body));
       setState(() {
         targetLatitudes = res['latitudes'];
         targetLongitudes = res['longitudes'];
+        distanceThreshold = double.parse(res['distance']);
         isLoading = false;
       });
     } else {
@@ -84,27 +86,47 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildDateTextField() {
-    return TextField(
-      controller: dateController,
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: 'تاریخ',
-        border: OutlineInputBorder(),
-        contentPadding: const EdgeInsets.all(12.0),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(
+        width: 75,
+        child: Text(
+          'تاریخ :',
+          style: TextStyle(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-    );
+      SizedBox(width: 8.0),
+      Expanded(
+          child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    left: BorderSide(color: CustomColor.textColor, width: 4.0)),
+              ),
+              child: TextField(
+                controller: dateController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  isDense: true,
+                  border: InputBorder.none,
+                ),
+              )))
+    ]);
   }
 
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pushReplacementNamed(context, '/personnel');
+        Navigator.pushReplacementNamed(context, '/main');
         return false;
       },
       child: Scaffold(
-        backgroundColor: CustomColor.backgroundColor,
         appBar: AppBar(
-          title: Text('ثبت ورود و خروج'),
+          title: Text('ثبت ورود و خروج',style: TextStyle(color: CustomColor.textColor)),
         ),
         drawer: AppDrawer(),
         body: SingleChildScrollView(
@@ -135,68 +157,135 @@ class _MyHomePageState extends State<MyHomePage> {
                               SizedBox(height: 24.0),
                               _buildDateTextField(),
                               SizedBox(height: 24.0),
-                              InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'نوع',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: const EdgeInsets.all(12.0),
-                                ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: type,
-                                    onChanged: (newValue) {
-                                      setState(() {
-                                        type = newValue!;
-                                      });
-                                    },
-                                    items: typeList.map((period) {
-                                      return DropdownMenuItem<String>(
-                                        value: period,
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16.0, vertical: 12.0),
-                                          child: Text(period,
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                              )),
+                              Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 75,
+                                      child: Text(
+                                        'نوع :',
+                                        style: TextStyle(
+                                          fontSize: 10.0,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      );
-                                    }).toList(),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
+                                      ),
                                     ),
-                                    isExpanded: true,
-                                    icon: Icon(Icons.arrow_drop_down),
-                                    elevation: 3,
-                                  ),
-                                ),
-                              ),
+                                    SizedBox(width: 8.0),
+                                    Expanded(
+                                        child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                  left: BorderSide(
+                                                      color:
+                                                          CustomColor.textColor,
+                                                      width: 4.0)),
+                                            ),
+                                            child: InputDecorator(
+                                                decoration: InputDecoration(
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                  contentPadding:
+                                                      EdgeInsets.only(
+                                                          right: 8, left: 8),
+                                                  isDense: true,
+                                                  border: InputBorder.none,
+                                                ),
+                                                child:
+                                                    DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    value: type,
+                                                    onChanged: (newValue) {
+                                                      setState(() {
+                                                        type = newValue!;
+                                                      });
+                                                    },
+                                                    items:
+                                                        typeList.map((period) {
+                                                      return DropdownMenuItem<
+                                                          String>(
+                                                        value: period,
+                                                        child: Container(
+                                                          width:
+                                                              double.infinity,
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                                  horizontal:
+                                                                      16.0,
+                                                                  vertical:
+                                                                      12.0),
+                                                          child: Text(period,
+                                                              style: TextStyle(
+                                                                fontSize: 16,
+                                                              )),
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 16,
+                                                    ),
+                                                    isExpanded: true,
+                                                    icon: Icon(
+                                                        Icons.arrow_drop_down),
+                                                    elevation: 3,
+                                                  ),
+                                                ))))
+                                  ]),
                               SizedBox(height: 24.0),
-                              TextField(
-                                controller: descriptionController,
-                                maxLines: 3,
-                                decoration: InputDecoration(
-                                  labelText: 'علت',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: const EdgeInsets.all(12.0),
-                                ),
-                                style: TextStyle(
-                                  fontFamily: 'irs',
-                                ),
-                              ),
+                              Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 75,
+                                      child: Text(
+                                        'توضیحات :',
+                                        style: TextStyle(
+                                          fontSize: 10.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8.0),
+                                    Expanded(
+                                        child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                  left: BorderSide(
+                                                      color:
+                                                          CustomColor.textColor,
+                                                      width: 4.0)),
+                                            ),
+                                            child: TextField(
+                                              controller: descriptionController,
+                                              maxLines: 3,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: Colors.white,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 8),
+                                                isDense: true,
+                                                border: InputBorder.none,
+                                              ),
+                                              style: TextStyle(
+                                                fontFamily: 'irs',
+                                              ),
+                                            )))
+                                  ]),
                               SizedBox(height: 24.0),
                               ElevatedButton(
                                 onPressed: isLoading ? null : submitAction,
                                 child: isLoading
                                     ? CircularProgressIndicator()
-                                    : Text(
-                                        'ثبت',
-                                      ),
+                                    : Text('ثبت',
+                                        style: TextStyle(color: Colors.white)),
                                 style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        10.0), // Adjust the radius as needed
+                                  ),
                                   minimumSize: const Size(double.infinity, 48),
-                                  primary: CustomColor.buttonColor,
+                                  primary: CustomColor.successColor,
                                 ),
                               ),
                             ],
@@ -263,33 +352,31 @@ class _MyHomePageState extends State<MyHomePage> {
           );
 
           if (actionResponse['status'] == 'successful') {
-            CustomNotification.showCustomSuccess(
-                context, Consts.RequestSavedSuccessfully);
-            Navigator.pushReplacementNamed(context, '/personnel');
+            CustomNotification.show(context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/main');
+          } else if (actionResponse['status'] == 'imperfect_data') {
+            CustomNotification.show(context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
           } else {
-            CustomNotification.showCustomWarning(
-                context, Consts.pleaseEnterDataCompletely);
+            CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
           }
         } catch (e) {
           setState(() {
             isLoading = false;
           });
-          CustomNotification.showCustomDanger(
-              context, Exception_consts.ConnectionError);
+          CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
+
         } finally {
           setState(() {
             isLoading = false;
           });
         }
       } else {
-        CustomNotification.showCustomWarning(context,
-            'درخواست غیر مجاز، شما در محدوده ی تعیین شده قرار ندارید!');
+        CustomNotification.show(context, 'خطا', 'درخواست غیر مجاز، شما در محدوده ی تعیین شده قرار ندارید!', '');
         setState(() {
           isLoading = false;
         });
       }
     } catch (e) {
-      CustomNotification.showCustomDanger(context, 'در ثبت درخواست مشکلی وجود دارد');
+      CustomNotification.show(context, 'ناموفق', 'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', '');
       setState(() {
         isLoading = false;
       });

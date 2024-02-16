@@ -10,7 +10,6 @@ import '../utils/custom_notification.dart';
 import '../widgets/app_drawer.dart';
 import '../services/auth_service.dart';
 
-
 class Assistance extends StatefulWidget {
   @override
   _AssistanceState createState() => _AssistanceState();
@@ -20,7 +19,8 @@ class _AssistanceState extends State<Assistance> {
   TextEditingController dateController = TextEditingController();
   TextEditingController valueController = TextEditingController();
   bool isLoading = false;
-  int max_value=0;
+  int max_value = 0;
+
   @override
   void initState() {
     super.initState();
@@ -28,6 +28,7 @@ class _AssistanceState extends State<Assistance> {
     valueController.addListener(_formatValue);
     fetchMaxAssistanceValue(context);
   }
+
   Future<void> fetchMaxAssistanceValue(BuildContext context) async {
     final AuthService authService = AuthService('https://afkhambpms.ir/api1');
     final token = await authService.getToken();
@@ -40,7 +41,6 @@ class _AssistanceState extends State<Assistance> {
         });
 
     if (response.statusCode == 200) {
-      print(json.decode(response.body));
       setState(() {
         max_value = int.parse(json.decode(response.body));
       });
@@ -77,7 +77,6 @@ class _AssistanceState extends State<Assistance> {
     Jalali j = dt.toJalali();
     final f = j.formatter;
     dateController.text = '1402/10/25';
-
   }
 
   Future<void> save() async {
@@ -93,26 +92,18 @@ class _AssistanceState extends State<Assistance> {
         valueController.text.trim(),
       );
       if (response['status'] == 'successful') {
-        CustomNotification.showCustomSuccess(
-          context,
-          'درخواست مساعده با موفقیت ثبت شد.',
-        );
-        Navigator.pushReplacementNamed(context, '/assistance');
+        CustomNotification.show(context, 'موفقیت آمیز', 'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
       } else if (response['status'] == 'existed') {
-        CustomNotification.showCustomWarning(
-          context,
-          'درخواست مساعده قبلا ثبت شده است.',
-        );
+        CustomNotification.show(context, 'خطا', 'درخواست مساعده قبلا ثبت شده است.', '/assistance');
+
+      } else if (response['status'] == 'imperfect_data'){
+        CustomNotification.show(context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+
       } else {
-        print(response['status']);
-        CustomNotification.showCustomWarning(
-          context,
-          'اطلاعات را به صورت کامل وارد کنید.',
-        );
+        CustomNotification.show(context,'ناموفق','در ثبت درخواست مشکلی وجود دارد.','');
       }
     } catch (e) {
-      CustomNotification.showCustomDanger(
-          context, 'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.');
+      CustomNotification.show(context,'ناموفق','خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.','');
     } finally {
       setState(() {
         isLoading = false;
@@ -122,12 +113,11 @@ class _AssistanceState extends State<Assistance> {
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-        backgroundColor: CustomColor.backgroundColor,
-        appBar: AppBar(
-          title: const Text('درخواست مساعده'),
-        ),
-        drawer: AppDrawer(),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('درخواست مساعده',style: TextStyle(color: CustomColor.textColor)),
+      ),
+      drawer: AppDrawer(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -168,40 +158,85 @@ class _AssistanceState extends State<Assistance> {
   }
 
   Widget _buildDateTextField() {
-    return TextField(
-      controller: dateController,
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: 'تاریخ',
-        border: OutlineInputBorder(),
-        contentPadding: const EdgeInsets.all(12.0),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(
+        width: 75,
+        child: Text(
+          'تاریخ درخواست :',
+          style: TextStyle(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-    );
+      SizedBox(width: 8.0),
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+                left: BorderSide(color: CustomColor.textColor, width: 4.0)),
+          ),
+          child: TextField(
+            controller: dateController,
+            readOnly: true,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+              isDense: true,
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ),
+    ]);
   }
 
-
   Widget _buildValueTextField() {
-    return TextField(
-      controller: valueController,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      decoration: InputDecoration(
-        labelText: 'مبلغ (ریال)',
-        border: OutlineInputBorder(),
-        contentPadding: const EdgeInsets.all(12.0),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(
+        width: 75,
+        child: Text(
+          'مبلغ (ریال) :',
+          style: TextStyle(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-    );
+      SizedBox(width: 8.0),
+      Expanded(
+          child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    left: BorderSide(color: CustomColor.textColor, width: 4.0)),
+              ),
+              child: TextField(
+                controller: valueController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  isDense: true,
+                  border: InputBorder.none,
+                ),
+              )))
+    ]);
   }
 
   Widget _buildSaveButton() {
     return ElevatedButton(
       onPressed: isLoading ? null : save,
-      child: isLoading
-          ? CircularProgressIndicator()
-          : Text('ثبت'),
+      child: isLoading ? CircularProgressIndicator() : Text('ثبت',style: TextStyle(color: Colors.white),),
       style: ElevatedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+              10.0), // Adjust the radius as needed
+        ),
         minimumSize: const Size(double.infinity, 48),
-        primary: CustomColor.buttonColor,
+        primary: CustomColor.successColor,
       ),
     );
   }
@@ -230,41 +265,30 @@ class _AllAssistanceListState extends State<AllAssistances> {
 
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async {
-      Navigator.pushReplacementNamed(context, '/personnel');
-      return false;
-    },
-    child:
-    Scaffold(
-      backgroundColor: CustomColor.backgroundColor,
-      appBar: AppBar(
-        title: Text('لیست درخواست های مساعده'),
-      ),
-      drawer: AppDrawer(),
-      body: SingleChildScrollView(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, '/main');
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('مساعده',style: TextStyle(color: CustomColor.textColor)),
+        ),
+        drawer: AppDrawer(),
+        body: SingleChildScrollView(
+          child: Column(children: [
+            Container(
+              color: CustomColor.backgroundColor,
               width: double.infinity,
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                color: CustomColor.cardColor,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        'درخواست مساعده',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                      Spacer(),
-                      InkWell(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    color: CustomColor.buttonColor,
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: InkWell(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -273,151 +297,140 @@ class _AllAssistanceListState extends State<AllAssistances> {
                             ),
                           );
                         },
-                        child: Container(
-                          padding: EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: CustomColor.warningColor,
-                            borderRadius: BorderRadius.circular(
-                                10.0),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                'ایجاد',
-                                style: TextStyle(
-                                    ),
-                              ),
-                              SizedBox(width: 8.0),
-                              Icon(Icons.arrow_circle_left),
-                            ],
-                          ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'درخواست مساعده جدید',
+                              style: TextStyle(
+                                  color: CustomColor.backgroundColor,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            //SizedBox(width: 8.0),
+                            //Icon(Icons.arrow_circle_left),
+                          ],
                         ),
-                      )
-                    ],
-                  ),
-                ),
+                      ),
+                    )),
               ),
             ),
-          ),
-        (isLoading)
-            ? Center(
-          child: CircularProgressIndicator(),
-        )
-            : (allAssistancelList.isEmpty)
-            ? Padding(
-            padding: const EdgeInsets.all(6.0),
-            child:
-            Center(
-              child: Card(
-                elevation: 5,
-                margin: EdgeInsets.all(16),
-                child: Container(
-                  color: Colors.white10,
-                  padding: EdgeInsets.all(16),
-                  width: double.infinity,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/box.png',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'تاکنون درخواست مساعده ثبت نکرده اید!',
-                        style: TextStyle(
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-        )
-            : ListView.builder(
-          shrinkWrap: true,
-          itemCount: allAssistancelList.length,
-          physics: NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            var assistance = allAssistancelList[index];
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-              ),
-              elevation: 4.0,
-              color: CustomColor.cardColor,
-              margin:
-              EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: ExpansionTile(
-                shape: LinearBorder.none,
-                leading: Icon(Icons.keyboard_arrow_down),
-                title: Text(
-                  ' دوره : ${assistance['payment_period']} ',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16.0,
-                  ),
-                ),
-                subtitle: Text(
-                  'مبلغ  : ${assistance['price']} ریال ',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                trailing: InkWell(
-                  child: Container(
-                    padding: EdgeInsets.all(8.0),
-                    decoration: BoxDecoration(
-                      color: CustomColor.cardColor,
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Text(
-                      '${assistance['level']}',
-                      style: TextStyle(),
-                    ),
-                  ),
-                ),
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Text(
-                          ' تاریخ ثبت : ${assistance['record_date']}  ',
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        if (assistance['deposit_date'] != null)
-                          Text(
-                            ' تاریخ پرداخت : ${assistance['payment_date']}  ',
-                            style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                            ),
-                          )
-                        else
-                          Text(
-                            ' تاریخ پرداخت : نامشخص  ',
-                            style: TextStyle(
-                              fontStyle: FontStyle.italic,
+            (isLoading)
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : (allAssistancelList.isEmpty)
+                    ? Padding(
+                        padding: const EdgeInsets.all(6.0),
+                        child: Center(
+                          child: Card(
+                            elevation: 5,
+                            margin: EdgeInsets.all(16),
+                            child: Container(
+                              color: Colors.white10,
+                              padding: EdgeInsets.all(16),
+                              width: double.infinity,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/box.png',
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'تاکنون درخواست مساعده ثبت نکرده اید!',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        )
-
-        ]
+                        ))
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: allAssistancelList.length,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          var assistance = allAssistancelList[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            elevation: 4.0,
+                            color: CustomColor.backgroundColor,
+                            margin:
+                                EdgeInsets.only(left: 16, right: 16, top: 12),
+                            child: ExpansionTile(
+                              shape: LinearBorder.none,
+                              leading: Icon(Icons.keyboard_arrow_down),
+                              title: Text(
+                                ' دوره :${assistance['payment_period']} ',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16.0,
+                                    color: CustomColor.textColor),
+                              ),
+                              subtitle: Text(
+                                'مبلغ  : ${assistance['price']} ریال ',
+                                style: TextStyle(
+                                    fontStyle: FontStyle.normal,
+                                    color: CustomColor.textColor),
+                              ),
+                              trailing: InkWell(
+                                child: Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
+                                    color: CustomColor.cardColor,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Text(
+                                    '${assistance['level']}',
+                                    style:
+                                        TextStyle(color: CustomColor.textColor),
+                                  ),
+                                ),
+                              ),
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        ' تاریخ ثبت : ${assistance['record_date']}  ',
+                                        style: TextStyle(
+                                            fontStyle: FontStyle.normal,
+                                            color: CustomColor.textColor),
+                                      ),
+                                      if (assistance['deposit_date'] != null)
+                                        Text(
+                                          ' تاریخ پرداخت : ${assistance['payment_date']}  ',
+                                          style: TextStyle(
+                                              fontStyle: FontStyle.normal,
+                                              color: CustomColor.textColor),
+                                        )
+                                      else
+                                        Text(
+                                          ' تاریخ پرداخت : نامشخص  ',
+                                          style: TextStyle(
+                                              fontStyle: FontStyle.normal,
+                                              color: CustomColor.textColor),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      )
+          ]),
         ),
-      ),
       ),
     );
   }
@@ -437,7 +450,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
         });
 
     if (response.statusCode == 200) {
-      print(json.decode(response.body));
       setState(() {
         allAssistancelList = json.decode(response.body);
         isLoading = false;

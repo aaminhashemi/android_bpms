@@ -44,7 +44,11 @@ class _MissionRequestState extends State<MissionRequest> {
   TextEditingController reasonController = TextEditingController();
 
   String leaveType = Consts.selectMissionType;
-  List<String> leaveTypes = [Consts.selectMissionType, Consts.daily, Consts.hourly];
+  List<String> leaveTypes = [
+    Consts.selectMissionType,
+    Consts.daily,
+    Consts.hourly
+  ];
 
   void clearHourFields() {
     startTime = null;
@@ -215,37 +219,103 @@ class _MissionRequestState extends State<MissionRequest> {
   }
 
   Widget _buildDateTextField() {
-    return TextField(
-      controller: dateController,
-      readOnly: true,
-      decoration: InputDecoration(
-        labelText: Consts.requestDate,
-        border: OutlineInputBorder(),
-        contentPadding: const EdgeInsets.all(12.0),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(
+        width: 75,
+        child: Text(
+          'تاریخ درخواست :',
+          style: TextStyle(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-    );
+      SizedBox(width: 8.0),
+      Expanded(
+          child: Container(
+              decoration: BoxDecoration(
+                border: Border(
+                    left: BorderSide(color: CustomColor.textColor, width: 4.0)),
+              ),
+              child: TextField(
+                controller: dateController,
+                readOnly: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                  isDense: true,
+                  border: InputBorder.none,
+                ),
+              )))
+    ]);
   }
 
   Widget _buildOriginTextField() {
-    return TextField(
-      controller: originController,
-      decoration: InputDecoration(
-        labelText: Consts.origin,
-        border: OutlineInputBorder(),
-        contentPadding: const EdgeInsets.all(12.0),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(
+        width: 75,
+        child: Text(
+          'مبدا :',
+          style: TextStyle(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-    );
+      SizedBox(width: 8.0),
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(
+                left: BorderSide(color: CustomColor.textColor, width: 4.0)),
+          ),
+          child: TextField(
+            controller: originController,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+              isDense: true,
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      )
+    ]);
   }
 
   Widget _buildDestinationTextField() {
-    return TextField(
-      controller: destinationController,
-      decoration: InputDecoration(
-        labelText: Consts.destination,
-        border: OutlineInputBorder(),
-        contentPadding: const EdgeInsets.all(12.0),
+    return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Container(
+        width: 75,
+        child: Text(
+          'مقصد :',
+          style: TextStyle(
+            fontSize: 10.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-    );
+      SizedBox(width: 8.0),
+      Expanded(
+          child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+              left: BorderSide(color: CustomColor.textColor, width: 4.0)),
+        ),
+        child: TextField(
+          controller: destinationController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: EdgeInsets.symmetric(vertical: 8),
+            isDense: true,
+            border: InputBorder.none,
+          ),
+        ),
+      ))
+    ]);
   }
 
   Widget removeFields() {
@@ -262,56 +332,102 @@ class _MissionRequestState extends State<MissionRequest> {
     return Column(
       children: [
         SizedBox(height: 16.0),
-        TextField(
-          controller: startTimeController,
-          readOnly: true,
-          onTap: () async {
-            TimeOfDay? pickedTime = await showTimePicker(
-              context: context,
-              initialTime: startTime ?? TimeOfDay.now(),
-            );
-            setState(() {
-              startTime = pickedTime;
-              startTimeController.text = MaterialLocalizations.of(context)
-                  .formatTimeOfDay(pickedTime!);
-            });
-          },
-          decoration: InputDecoration(
-            labelText: Consts.startTime,
-            border: OutlineInputBorder(),
-            contentPadding: const EdgeInsets.all(12.0),
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Container(
+            width: 75,
+            child: Text(
+              'ساعت شروع :',
+              style: TextStyle(
+                fontSize: 10.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        ),
+          SizedBox(width: 8.0),
+          Expanded(
+              child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                        left: BorderSide(
+                            color: CustomColor.textColor, width: 4.0)),
+                  ),
+                  child: TextField(
+                    controller: startTimeController,
+                    readOnly: true,
+                    onTap: () async {
+                      TimeOfDay? pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: startTime ?? TimeOfDay.now(),
+                      );
+                      setState(() {
+                        startTime = pickedTime;
+                        startTimeController.text =
+                            MaterialLocalizations.of(context)
+                                .formatTimeOfDay(pickedTime!);
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      isDense: true,
+                      border: InputBorder.none,
+                    ),
+                  )))
+        ]),
         SizedBox(height: 16.0),
-        TextField(
-          controller: endTimeController,
-          readOnly: true,
-          onTap: () async {
-            TimeOfDay? pickedTime = await showTimePicker(
-              context: context,
-              initialTime: startTime ?? TimeOfDay.now(),
-            );
-            setState(() {
-              endTime = pickedTime;
-              int minutesStart = timeOfDayToMinutes(startTime!);
-              int minutesEnd = timeOfDayToMinutes(endTime!);
-
-              if (minutesStart > minutesEnd) {
-                CustomNotification.showCustomWarning(
-                    context, Consts.endTimeCantBeLessThanStartTime);
-                endTimeController.text = '';
-              } else {
-                endTimeController.text = MaterialLocalizations.of(context)
-                    .formatTimeOfDay(pickedTime!);
-              }
-            });
-          },
-          decoration: InputDecoration(
-            labelText: Consts.endTime,
-            border: OutlineInputBorder(),
-            contentPadding: const EdgeInsets.all(12.0),
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Container(
+            width: 75,
+            child: Text(
+              'ساعت پایان :',
+              style: TextStyle(
+                fontSize: 10.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-        )
+          SizedBox(width: 8.0),
+          Expanded(
+              child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                        left: BorderSide(
+                            color: CustomColor.textColor, width: 4.0)),
+                  ),
+                  child: TextField(
+                    controller: endTimeController,
+                    readOnly: true,
+                    onTap: () async {
+                      TimeOfDay? pickedTime = await showTimePicker(
+                        context: context,
+                        initialTime: startTime ?? TimeOfDay.now(),
+                      );
+                      setState(() {
+                        endTime = pickedTime;
+                        int minutesStart = timeOfDayToMinutes(startTime!);
+                        int minutesEnd = timeOfDayToMinutes(endTime!);
+
+                        if (minutesStart > minutesEnd) {
+                          CustomNotification.showCustomWarning(
+                              context, Consts.endTimeCantBeLessThanStartTime);
+                          endTimeController.text = '';
+                        } else {
+                          endTimeController.text =
+                              MaterialLocalizations.of(context)
+                                  .formatTimeOfDay(pickedTime!);
+                        }
+                      });
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: EdgeInsets.symmetric(vertical: 8),
+                      isDense: true,
+                      border: InputBorder.none,
+                    ),
+                  )))
+        ])
       ],
     );
   }
@@ -347,13 +463,18 @@ class _MissionRequestState extends State<MissionRequest> {
           type);
       print(response);
       if (response['status'] == 'successful') {
-        CustomNotification.showCustomDanger(context, Consts.missionSavedSuccessfully);
-        Navigator.pushReplacementNamed(context, '/mission-request');
+        CustomNotification.show(context, 'موفقیت آمیز',
+            'درخواست ماموریت با موفقیت ثبت شد.', '/mission-request');
+      } else if (response['status'] == 'imperfect_data') {
+        CustomNotification.show(
+            context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
       } else {
-        CustomNotification.showCustomDanger(context, Consts.pleaseEnterDataCompletely);
+        CustomNotification.show(
+            context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } catch (e) {
-      CustomNotification.showCustomDanger(context, Exception_consts.ConnectionError);
+      CustomNotification.show(context, 'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', '');
     } finally {
       setState(() {
         isLoading = false;
@@ -364,9 +485,8 @@ class _MissionRequestState extends State<MissionRequest> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
-        title: Text(Consts.missionRequest),
+        title: Text(Consts.missionRequest,style: TextStyle(color: CustomColor.textColor)),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
@@ -397,51 +517,82 @@ class _MissionRequestState extends State<MissionRequest> {
                             SizedBox(height: 16.0),
                             _buildDateTextField(),
                             SizedBox(height: 16.0),
-                            InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: Consts.missionType,
-                                border: OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.all(12.0),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: leaveType,
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      leaveType = newValue!;
-                                      clearHourFields();
-                                    });
-                                  },
-                                  items: leaveTypes.map((type) {
-                                    return DropdownMenuItem<String>(
-                                      value: type,
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16.0, vertical: 12.0),
-                                        child: Text(
-                                          type,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                          ),
-                                        ),
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 75,
+                                    child: Text(
+                                      'نوع ماموریت :',
+                                      style: TextStyle(
+                                        fontSize: 10.0,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    );
-                                  }).toList(),
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 16,
+                                    ),
                                   ),
-                                  isExpanded: true,
-                                  icon: Icon(Icons.arrow_drop_down),
-                                  elevation: 3,
-                                  underline: Container(
-                                    height: 0,
-                                    color: Colors.transparent,
-                                  ),
-                                ),
-                              ),
-                            ),
+                                  Expanded(
+                                      child: Container(
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                                left: BorderSide(
+                                                    color:
+                                                        CustomColor.textColor,
+                                                    width: 4.0)),
+                                          ),
+                                          child: InputDecorator(
+                                            decoration: InputDecoration(
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              contentPadding: EdgeInsets.only(
+                                                  right: 8, left: 8),
+                                              isDense: true,
+                                              border: InputBorder.none,
+                                            ),
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value: leaveType,
+                                                onChanged: (newValue) {
+                                                  setState(() {
+                                                    leaveType = newValue!;
+                                                    clearHourFields();
+                                                  });
+                                                },
+                                                items: leaveTypes.map((type) {
+                                                  return DropdownMenuItem<
+                                                      String>(
+                                                    value: type,
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 16.0,
+                                                              vertical: 12.0),
+                                                      child: Text(
+                                                        type,
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 16,
+                                                ),
+                                                isExpanded: true,
+                                                icon:
+                                                    Icon(Icons.arrow_drop_down),
+                                                elevation: 3,
+                                                underline: Container(
+                                                  height: 0,
+                                                  color: Colors.transparent,
+                                                ),
+                                              ),
+                                            ),
+                                          )))
+                                ]),
                             (leaveType != Consts.selectMissionType)
                                 ? (leaveType == Consts.daily
                                     ? buildDateFields()
@@ -452,34 +603,63 @@ class _MissionRequestState extends State<MissionRequest> {
                             SizedBox(height: 16.0),
                             _buildDestinationTextField(),
                             SizedBox(height: 16.0),
-                            TextField(
-                                controller: reasonController,
-                                maxLines: 3,
-                                decoration: InputDecoration(
-                                  labelText: Consts.reason,
-                                  border: OutlineInputBorder(),
-                                  contentPadding: const EdgeInsets.all(12.0),
-                                ),
-                                style: TextStyle(
-                                  fontFamily: 'irs',
-                                )),
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 75,
+                                    child: Text(
+                                      'علت :',
+                                      style: TextStyle(
+                                        fontSize: 10.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8.0),
+                                  Expanded(
+                                      child: Container(
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                                left: BorderSide(
+                                                    color:
+                                                        CustomColor.textColor,
+                                                    width: 4.0)),
+                                          ),
+                                          child: TextField(
+                                              controller: reasonController,
+                                              maxLines: 3,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: Colors.white,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 8),
+                                                isDense: true,
+                                                border: InputBorder.none,
+                                              ),
+                                              style: TextStyle(
+                                                fontFamily: 'irs',
+                                              ))))
+                                ]),
                             SizedBox(height: 24.0),
                             ElevatedButton(
-                                onPressed:
-                                    isLoading ? null : submitMissionRequest,
-                                child: isLoading
-                                    ? CircularProgressIndicator()
-                                    : Text(Consts.save,),
-                                style: ElevatedButton.styleFrom(
-                                  minimumSize: const Size(double.infinity, 48),
-                                  maximumSize: const Size(double.infinity, 48),
-                                  primary: CustomColor.buttonColor,
-                                )
+                              onPressed:
+                                  isLoading ? null : submitMissionRequest,
+                              child: isLoading
+                                  ? CircularProgressIndicator()
+                                  : Text(Consts.save,
+                                      style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      10.0), // Adjust the radius as needed
+                                ),
+                                minimumSize: const Size(double.infinity, 48),
+                                primary: CustomColor.successColor,
+                              ),
                             ),
-                          ]
-                        )
-                      )
-                  )
+                          ])))
                 ],
               ),
             ),
@@ -510,63 +690,59 @@ class _AllMissionsListState extends State<AllMissions> {
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
-          Navigator.pushReplacementNamed(context, '/personnel');
+          Navigator.pushReplacementNamed(context, '/main');
           return false;
         },
         child: Scaffold(
-          backgroundColor: CustomColor.backgroundColor,
           appBar: AppBar(
-            title: Text(Consts.missionsList),
+            title: Text(Consts.missionsList,style: TextStyle(color: CustomColor.textColor)),
           ),
           drawer: AppDrawer(),
           body: SingleChildScrollView(
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    width: double.infinity,
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      color: CustomColor.cardColor,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            Text(
-                              Consts.missionRequest,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
+                Container(
+                  color: CustomColor.backgroundColor,
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      width: double.infinity,
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        color: CustomColor.buttonColor,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MissionRequest(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    Consts.missionRequest,
+                                    style: TextStyle(
+                                        color: CustomColor.backgroundColor,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
                             ),
-                            Spacer(),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MissionRequest(),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                padding: EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(
-                                  color: CustomColor.warningColor,
-                                  borderRadius: BorderRadius.circular(10.0),),
-                                child: Row(
-                                  children: [
-                                    Text(Consts.create),
-                                    SizedBox(width: 8.0),
-                                    Icon(Icons.arrow_circle_left),
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
+                          ),
                         ),
                       ),
                     ),
@@ -577,147 +753,287 @@ class _AllMissionsListState extends State<AllMissions> {
                         child: CircularProgressIndicator(),
                       )
                     : (allMissionsList.isEmpty)
-                        ?
-                Padding(
-                  padding: const EdgeInsets.all(6.0),
-                  child:
-                Center(
-                  child: Card(
-                    elevation: 5,
-
-                    margin: EdgeInsets.all(16),
-                    child: Container(
-                      color: Colors.white10,
-                      padding: EdgeInsets.all(16),
-                      width: double.infinity,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/box.png',
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            Consts.noMissionsFound,
-                            style: TextStyle(
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-                )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: allMissionsList.length,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              var mission = allMissionsList[index];
-                              return Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
+                        ? Padding(
+                            padding: const EdgeInsets.all(6.0),
+                            child: Center(
+                              child: Card(
+                                elevation: 5,
+                                margin: EdgeInsets.all(16),
+                                child: Container(
+                                  color: Colors.white10,
+                                  padding: EdgeInsets.all(16),
+                                  width: double.infinity,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/box.png',
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        Consts.noMissionsFound,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                elevation: 4.0,
-                                color: CustomColor.cardColor,
-                                margin: EdgeInsets.symmetric(
-                                    horizontal: 16.0, vertical: 8.0),
-                                child: ExpansionTile(
-                                  onExpansionChanged: (isExpanded) {
-                                    setState(() {
-                                      _isExpandedList[index] = isExpanded;
-                                    });
-                                  },
-                                  leading: _isExpandedList[index]
-                                      ? Icon(Icons.keyboard_arrow_up)
-                                      : Icon(Icons.keyboard_arrow_down),
-                                  shape: LinearBorder.none,
-                                  title: Text('${Consts.requestDate} : ${mission['jalali_request_date']} ',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.0,),
+                              ),
+                            ))
+                        : Padding(
+                            padding: EdgeInsets.only(bottom: 16.0),
+                            // Adjust the value as needed
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: allMissionsList.length,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemBuilder: (context, index) {
+                                var mission = allMissionsList[index];
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
-                                  subtitle: Text('${Consts.missionType}  : ${mission['type']}  ',
-                                    style: TextStyle(fontStyle: FontStyle.italic,),
-                                  ),
-                                  trailing: InkWell(
-                                    child: (mission['status'] == 'recorded')
-                                        ? Container(
-                                            padding: EdgeInsets.all(8.0),
-                                            decoration: BoxDecoration(
-                                              color: CustomColor.cardColor,
-                                              borderRadius: BorderRadius.circular(10.0),),
-                                            child: Text('${mission['level']}', style: TextStyle(),),
-                                          )
-                                        : (mission['status'] == 'accepted')
-                                            ? Container(
-                                                padding: EdgeInsets.all(8.0),
-                                                decoration: BoxDecoration(
-                                                  color: CustomColor.successColor,
-                                                  borderRadius: BorderRadius.circular(10.0),
+                                  elevation: 4.0,
+                                  color: CustomColor.cardColor,
+                                  margin: EdgeInsets.only(
+                                      left: 16, right: 16, top: 12),
+                                  child: ExpansionTile(
+                                    onExpansionChanged: (isExpanded) {
+                                      setState(() {
+                                        _isExpandedList[index] = isExpanded;
+                                      });
+                                    },
+                                    leading: _isExpandedList[index]
+                                        ? Icon(Icons.keyboard_arrow_up)
+                                        : Icon(Icons.keyboard_arrow_down),
+                                    shape: LinearBorder.none,
+                                    title: Text(
+                                      '${Consts.requestDate} : ${mission['jalali_request_date']} ',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12.0,
+                                          color: CustomColor.textColor),
+                                    ),
+                                    subtitle: RichText(
+                                      text: TextSpan(children: <TextSpan>[
+                                        TextSpan(
+                                          text: '${Consts.missionType}  :',
+                                          style: TextStyle(
+                                              fontFamily: 'irs',
+                                              fontWeight: FontWeight.bold,
+                                              color: CustomColor.textColor),
+                                        ),
+                                        TextSpan(
+                                          text: ' ${mission['type']}  ',
+                                          style: TextStyle(
+                                              fontFamily: 'irs',
+                                              fontWeight: FontWeight.normal,
+                                              color: CustomColor.textColor),
+                                        ),
+                                      ]),
+                                    ),
+                                    trailing: InkWell(
+                                      child: (mission['status'] == 'recorded')
+                                          ? Container(
+                                              padding: EdgeInsets.all(8.0),
+                                              decoration: BoxDecoration(
+                                                color: CustomColor.cardColor,
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                              child: Text(
+                                                '${mission['level']}',
+                                                style: TextStyle(
+                                                    color:
+                                                        CustomColor.textColor),
+                                              ),
+                                            )
+                                          : (mission['status'] == 'accepted')
+                                              ? Container(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  decoration: BoxDecoration(
+                                                    color: CustomColor
+                                                        .successColor,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                  child: Text(
+                                                    '${mission['level']}',
+                                                    style: TextStyle(
+                                                        color: CustomColor
+                                                            .textColor),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        CustomColor.dangerColor,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10.0),
+                                                  ),
+                                                  child: Text(
+                                                      '${mission['level']}',
+                                                      style: TextStyle(
+                                                          color: CustomColor
+                                                              .textColor)),
                                                 ),
-                                                child: Text('${mission['level']}', style: TextStyle(),),
-                                              )
-                                            : Container(
-                                                padding: EdgeInsets.all(8.0),
-                                                decoration: BoxDecoration(
-                                                  color: CustomColor.dangerColor,
-                                                  borderRadius: BorderRadius.circular(10.0),
+                                    ),
+                                    children: <Widget>[
+                                      Padding(
+                                        padding: const EdgeInsets.all(16.0),
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                RichText(
+                                                  text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text:
+                                                              '${Consts.start}  :',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              ' ${mission['start']}  ',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ]),
                                                 ),
-                                                child: Text('${mission['level']}', style: TextStyle()),
-                                              ),
-                                  ),
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Text('${Consts.start} : ${mission['start']}  ',
-                                                style: TextStyle(fontStyle: FontStyle.italic,),
-                                              ),
-                                              Spacer(),
-                                              Text('${Consts.end} : ${mission['end']}  ',
-                                                style: TextStyle(fontStyle: FontStyle.italic,),
-                                              ),
-                                            ],
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Text('${Consts.description} : ${mission['reason']}',
-                                                  style: TextStyle(fontStyle: FontStyle.italic),
-                                                  overflow:
-                                                      TextOverflow.visible,
+                                                Spacer(),
+                                                RichText(
+                                                  text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text:
+                                                              '${Consts.end}  :',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              ' ${mission['end']}  ',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ]),
                                                 ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (mission['description'] != null)
+                                              ],
+                                            ),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.start,
                                               children: [
                                                 Expanded(
-                                                  child: Text('${Consts.SuperiorDescription} : ${mission['description']}',
-                                                    style: TextStyle(fontStyle: FontStyle.italic,),
-                                                    overflow: TextOverflow.visible,),
+                                                  child: RichText(
+                                                    text: TextSpan(
+                                                        children: <TextSpan>[
+                                                          TextSpan(
+                                                            text:
+                                                                '${Consts.description}  :',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                          TextSpan(
+                                                            text:
+                                                                ' ${mission['reason']}  ',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                        ]),
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                        ],
+                                            if (mission['description'] != null)
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text:
+                                                                  '${Consts.SuperiorDescription}  :',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                            TextSpan(
+                                                              text:
+                                                                  ' ${mission['description']}  ',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .normal,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                          ]),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
                           ),
               ],
             ),

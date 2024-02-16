@@ -64,7 +64,7 @@ class _PayslipListState extends State<PayslipList> {
       'Authorization': 'Bearer $accessToken',
       'Content-Type': 'application/x-www-form-urlencoded',
     });
-
+    print(response);
     if (response.statusCode == 200) {
       setState(() {
         payslipList = json.decode(response.body);
@@ -85,102 +85,119 @@ class _PayslipListState extends State<PayslipList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomColor.backgroundColor,
-      appBar: AppBar(
-        title: Text(Consts.payslip),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          ),
-        ],
-      ),
-      drawer: AppDrawer(),
-      body: (isLoading)
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : (payslipList.isEmpty)
-              ? Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Container(
-                    width: double.infinity, // Set the width to full width
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      color: CustomColor.cardColor,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, '/main');
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(Consts.payslip,
+              style: TextStyle(color: CustomColor.textColor)),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () => _logout(context),
+            ),
+          ],
+        ),
+        drawer: AppDrawer(),
+        body: (isLoading)
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : (payslipList.isEmpty)
+                ? Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: Center(
+                      child: Card(
+                        elevation: 5,
+                        margin: EdgeInsets.all(16),
                         child: Container(
-                          child: Text(Consts.noPayslipWasFound,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                          color: Colors.white10,
+                          padding: EdgeInsets.all(16),
+                          width: double.infinity,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.asset(
+                                'assets/images/box.png',
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'تاکنون فیش حقوقی برای شما ثبت نشده است.',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
+                    ))
+                : ListView.builder(
+                    itemCount: payslipList.length,
+                    itemBuilder: (context, index) {
+                      var payslip = payslipList[index];
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        color: CustomColor.cardColor,
+                        elevation: 4.0,
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: ListTile(
+                          title: Text(
+                            ' ${Consts.period}: ${payslip['payment_period']} ',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ' ${Consts.value} :  ${payslip['price']}  ${Consts.priceUnit} ',
+                                style: TextStyle(
+                                  fontStyle: FontStyle.normal,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                ' ${Consts.status} : ${payslip['level']} ',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                ' ${Consts.paymentDate} ${payslip['payment_date']} ',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Icon(Icons.arrow_forward),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PayslipDetails(payslip),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
-                )
-              : ListView.builder(
-                  itemCount: payslipList.length,
-                  itemBuilder: (context, index) {
-                    var payslip = payslipList[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      color: CustomColor.cardColor,
-                      elevation: 4.0,
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      child: ListTile(
-                        title: Text(
-                          ' ${Consts.period}: ${payslip['payment_period']} ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16.0,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              ' ${Consts.value} :  ${payslip['price']}  ${Consts.priceUnit} ',
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              ' ${Consts.status} : ${payslip['level']} ',
-                              style: TextStyle(
-                                color: Colors.green,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              ' ${Consts.paymentDate} ${payslip['payment_date']} ',
-                              style: TextStyle(
-                                color: Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Icon(Icons.arrow_forward),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PayslipDetails(payslip),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+      ),
     );
   }
 }
@@ -204,7 +221,8 @@ class PayslipDetails extends StatelessWidget {
     return Scaffold(
       backgroundColor: CustomColor.backgroundColor,
       appBar: AppBar(
-        title: Text(' ${Consts.payslip} ${payslip['payment_period']} '),
+        title: Text(' ${Consts.payslip} ${payslip['payment_period']} ',
+            style: TextStyle(color: CustomColor.textColor)),
       ),
       body: Container(
         child: Column(
@@ -217,6 +235,13 @@ class PayslipDetails extends StatelessWidget {
             ElevatedButton(
               onPressed: _launchURL,
               child: Text(Consts.download),
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                      10.0), // Adjust the radius as needed
+                ),
+                primary: CustomColor.successColor,
+              ),
             ),
           ],
         ),
