@@ -59,31 +59,82 @@ class _MissionRequestState extends State<MissionRequest> {
     return Column(
       children: [
         SizedBox(height: 16.0),
-        TextField(
-          controller: startDateController,
-          readOnly: true,
-          decoration: InputDecoration(
-            labelText: Consts.startDate,
-            border: OutlineInputBorder(),
-            contentPadding: const EdgeInsets.all(12.0),
-          ),
-          onTap: () {
-            showStartDateDialog(context, startDateController);
-          },
-        ),
+        Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 75,
+                child: Text(
+                  'تاریخ شروع :',
+                  style: TextStyle(
+                    fontSize: 10.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.0),
+              Expanded(
+                  child: Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                            left: BorderSide(
+                                color: CustomColor.textColor, width: 4.0)),
+                      ),
+                      child: TextField(
+                        controller: startDateController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(vertical: 8),
+                          isDense: true,
+                          border: InputBorder.none,
+                        ),
+                        onTap: () {
+                          showStartDateDialog(context, startDateController);
+                        },
+                      )))
+            ]),
         SizedBox(height: 16.0),
-        TextField(
-          controller: endDateController,
-          readOnly: true,
-          decoration: InputDecoration(
-            labelText: Consts.endDate,
-            border: OutlineInputBorder(),
-            contentPadding: const EdgeInsets.all(12.0),
-          ),
-          onTap: () {
-            showEndDateDialog(context, endDateController);
-          },
-        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 75,
+              child: Text(
+                'تاریخ پایان :',
+                style: TextStyle(
+                  fontSize: 10.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.0),
+            Expanded(
+                child: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                          left: BorderSide(
+                              color: CustomColor.textColor, width: 4.0)),
+                    ),
+                    child: TextField(
+                      controller: endDateController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(vertical: 8),
+                        isDense: true,
+                        border: InputBorder.none,
+                      ),
+                      onTap: () {
+                        showEndDateDialog(context, endDateController);
+                      },
+                    )))
+          ],
+        )
       ],
     );
   }
@@ -170,7 +221,7 @@ class _MissionRequestState extends State<MissionRequest> {
             children: [
               LinearDatePicker(
                 startDate: startDateController.text,
-                endDate: "1398/01/14",
+                //endDate: "1398/01/14",
                 initialDate: "1397/05/05",
                 addLeadingZero: true,
                 dateChangeListener: (String selectedDate) {
@@ -461,7 +512,7 @@ class _MissionRequestState extends State<MissionRequest> {
           destinationController.text.trim(),
           reasonController.text.trim(),
           type);
-      print(response);
+
       if (response['status'] == 'successful') {
         CustomNotification.show(context, 'موفقیت آمیز',
             'درخواست ماموریت با موفقیت ثبت شد.', '/mission-request');
@@ -486,7 +537,9 @@ class _MissionRequestState extends State<MissionRequest> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Consts.missionRequest,style: TextStyle(color: CustomColor.textColor)),
+        iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+        title: Text(Consts.missionRequest,
+            style: TextStyle(color: CustomColor.textColor)),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
@@ -531,6 +584,7 @@ class _MissionRequestState extends State<MissionRequest> {
                                       ),
                                     ),
                                   ),
+                                  SizedBox(width: 8.0),
                                   Expanded(
                                       child: Container(
                                           decoration: BoxDecoration(
@@ -558,6 +612,8 @@ class _MissionRequestState extends State<MissionRequest> {
                                                     clearHourFields();
                                                   });
                                                 },
+                                                iconEnabledColor: CustomColor
+                                                    .drawerBackgroundColor,
                                                 items: leaveTypes.map((type) {
                                                   return DropdownMenuItem<
                                                       String>(
@@ -695,52 +751,52 @@ class _AllMissionsListState extends State<AllMissions> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: Text(Consts.missionsList,style: TextStyle(color: CustomColor.textColor)),
+            iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+            title: Text(Consts.missionsList,
+                style: TextStyle(color: CustomColor.textColor)),
           ),
           drawer: AppDrawer(),
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  color: CustomColor.backgroundColor,
-                  width: double.infinity,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      width: double.infinity,
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        color: CustomColor.buttonColor,
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MissionRequest(),
+          body: Column(
+            children: [
+              Container(
+                color: CustomColor.backgroundColor,
+                width: double.infinity,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    width: double.infinity,
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      color: CustomColor.buttonColor,
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MissionRequest(),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  Consts.missionRequest,
+                                  style: TextStyle(
+                                      color: CustomColor.backgroundColor,
+                                      fontWeight: FontWeight.bold),
                                 ),
-                              );
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    Consts.missionRequest,
-                                    style: TextStyle(
-                                        color: CustomColor.backgroundColor,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
+                              ],
                             ),
                           ),
                         ),
@@ -748,118 +804,106 @@ class _AllMissionsListState extends State<AllMissions> {
                     ),
                   ),
                 ),
-                (isLoading)
-                    ? Center(
-                        child: CircularProgressIndicator(),
-                      )
-                    : (allMissionsList.isEmpty)
-                        ? Padding(
-                            padding: const EdgeInsets.all(6.0),
-                            child: Center(
-                              child: Card(
-                                elevation: 5,
-                                margin: EdgeInsets.all(16),
-                                child: Container(
-                                  color: Colors.white10,
-                                  padding: EdgeInsets.all(16),
-                                  width: double.infinity,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/images/box.png',
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
+              ),
+              (isLoading)
+                  ? Expanded(
+                      child: Center(
+                      child: CircularProgressIndicator(),
+                    ))
+                  : (allMissionsList.isEmpty)
+                      ? Expanded(
+                          child: Center(
+                          child: Text(
+                            'ماموریت یافت نشد!',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
+                        ))
+                      : Expanded(
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: EdgeInsets.only(bottom: 15),
+                              child: Padding(
+                                padding: EdgeInsets.only(bottom: 16.0),
+                                // Adjust the value as needed
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: allMissionsList.length,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    var mission = allMissionsList[index];
+                                    return Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        Consts.noMissionsFound,
-                                        style: TextStyle(
-                                          fontSize: 18,
+                                      elevation: 4.0,
+                                      color: CustomColor.backgroundColor,
+                                      margin: EdgeInsets.only(
+                                          left: 16, right: 16, top: 12),
+                                      child: ExpansionTile(
+                                        onExpansionChanged: (isExpanded) {
+                                          setState(() {
+                                            _isExpandedList[index] = isExpanded;
+                                          });
+                                        },
+                                        leading: _isExpandedList[index]
+                                            ? Icon(Icons.keyboard_arrow_up,
+                                                color: CustomColor
+                                                    .drawerBackgroundColor)
+                                            : Icon(Icons.keyboard_arrow_down,
+                                                color: CustomColor
+                                                    .drawerBackgroundColor),
+                                        shape: LinearBorder.none,
+                                        title: RichText(
+                                          text: TextSpan(children: <TextSpan>[
+                                            TextSpan(
+                                              text: '${Consts.requestDate}  :',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' ${mission['jalali_request_date']}  ',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                          ]),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ))
-                        : Padding(
-                            padding: EdgeInsets.only(bottom: 16.0),
-                            // Adjust the value as needed
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: allMissionsList.length,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                var mission = allMissionsList[index];
-                                return Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  elevation: 4.0,
-                                  color: CustomColor.cardColor,
-                                  margin: EdgeInsets.only(
-                                      left: 16, right: 16, top: 12),
-                                  child: ExpansionTile(
-                                    onExpansionChanged: (isExpanded) {
-                                      setState(() {
-                                        _isExpandedList[index] = isExpanded;
-                                      });
-                                    },
-                                    leading: _isExpandedList[index]
-                                        ? Icon(Icons.keyboard_arrow_up)
-                                        : Icon(Icons.keyboard_arrow_down),
-                                    shape: LinearBorder.none,
-                                    title: Text(
-                                      '${Consts.requestDate} : ${mission['jalali_request_date']} ',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12.0,
-                                          color: CustomColor.textColor),
-                                    ),
-                                    subtitle: RichText(
-                                      text: TextSpan(children: <TextSpan>[
-                                        TextSpan(
-                                          text: '${Consts.missionType}  :',
-                                          style: TextStyle(
-                                              fontFamily: 'irs',
-                                              fontWeight: FontWeight.bold,
-                                              color: CustomColor.textColor),
+                                        subtitle: RichText(
+                                          text: TextSpan(children: <TextSpan>[
+                                            TextSpan(
+                                              text: '${Consts.missionType}  :',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                            TextSpan(
+                                              text: ' ${mission['type']}  ',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                          ]),
                                         ),
-                                        TextSpan(
-                                          text: ' ${mission['type']}  ',
-                                          style: TextStyle(
-                                              fontFamily: 'irs',
-                                              fontWeight: FontWeight.normal,
-                                              color: CustomColor.textColor),
-                                        ),
-                                      ]),
-                                    ),
-                                    trailing: InkWell(
-                                      child: (mission['status'] == 'recorded')
-                                          ? Container(
-                                              padding: EdgeInsets.all(8.0),
-                                              decoration: BoxDecoration(
-                                                color: CustomColor.cardColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                              child: Text(
-                                                '${mission['level']}',
-                                                style: TextStyle(
-                                                    color:
-                                                        CustomColor.textColor),
-                                              ),
-                                            )
-                                          : (mission['status'] == 'accepted')
+                                        trailing: InkWell(
+                                          child: (mission['status'] ==
+                                                  'recorded')
                                               ? Container(
                                                   padding: EdgeInsets.all(8.0),
                                                   decoration: BoxDecoration(
-                                                    color: CustomColor
-                                                        .successColor,
+                                                    color:
+                                                        CustomColor.cardColor,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             10.0),
@@ -871,138 +915,61 @@ class _AllMissionsListState extends State<AllMissions> {
                                                             .textColor),
                                                   ),
                                                 )
-                                              : Container(
-                                                  padding: EdgeInsets.all(8.0),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        CustomColor.dangerColor,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                  ),
-                                                  child: Text(
-                                                      '${mission['level']}',
-                                                      style: TextStyle(
-                                                          color: CustomColor
-                                                              .textColor)),
-                                                ),
-                                    ),
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Column(
-                                          children: [
-                                            Row(
+                                              : (mission['status'] ==
+                                                      'accepted')
+                                                  ? Container(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      decoration: BoxDecoration(
+                                                        color: CustomColor
+                                                            .successColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                      ),
+                                                      child: Text(
+                                                        '${mission['level']}',
+                                                        style: TextStyle(
+                                                            color: CustomColor
+                                                                .textColor),
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      decoration: BoxDecoration(
+                                                        color: CustomColor
+                                                            .dangerColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                      ),
+                                                      child: Text(
+                                                          '${mission['level']}',
+                                                          style: TextStyle(
+                                                              color: CustomColor
+                                                                  .textColor)),
+                                                    ),
+                                        ),
+                                        children: <Widget>[
+                                          Container(
+                                            color: CustomColor.cardColor,
+                                            padding: EdgeInsets.all(16.0),
+                                            child: Column(
                                               children: [
-                                                RichText(
-                                                  text: TextSpan(
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text:
-                                                              '${Consts.start}  :',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                        TextSpan(
-                                                          text:
-                                                              ' ${mission['start']}  ',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .normal,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                      ]),
-                                                ),
-                                                Spacer(),
-                                                RichText(
-                                                  text: TextSpan(
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text:
-                                                              '${Consts.end}  :',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                        TextSpan(
-                                                          text:
-                                                              ' ${mission['end']}  ',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .normal,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                      ]),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Expanded(
-                                                  child: RichText(
-                                                    text: TextSpan(
-                                                        children: <TextSpan>[
-                                                          TextSpan(
-                                                            text:
-                                                                '${Consts.description}  :',
-                                                            style: TextStyle(
-                                                                fontFamily:
-                                                                    'irs',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: CustomColor
-                                                                    .textColor),
-                                                          ),
-                                                          TextSpan(
-                                                            text:
-                                                                ' ${mission['reason']}  ',
-                                                            style: TextStyle(
-                                                                fontFamily:
-                                                                    'irs',
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .normal,
-                                                                color: CustomColor
-                                                                    .textColor),
-                                                          ),
-                                                        ]),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            if (mission['description'] != null)
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  Expanded(
-                                                    child: RichText(
+                                                Row(
+                                                  children: [
+                                                    RichText(
                                                       text: TextSpan(
                                                           children: <TextSpan>[
                                                             TextSpan(
                                                               text:
-                                                                  '${Consts.SuperiorDescription}  :',
+                                                                  '${Consts.start}  :',
                                                               style: TextStyle(
                                                                   fontFamily:
                                                                       'irs',
+                                                                  fontSize:
+                                                                      12.0,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .bold,
@@ -1011,10 +978,12 @@ class _AllMissionsListState extends State<AllMissions> {
                                                             ),
                                                             TextSpan(
                                                               text:
-                                                                  ' ${mission['description']}  ',
+                                                                  ' ${mission['start']}  ',
                                                               style: TextStyle(
                                                                   fontFamily:
                                                                       'irs',
+                                                                  fontSize:
+                                                                      12.0,
                                                                   fontWeight:
                                                                       FontWeight
                                                                           .normal,
@@ -1023,20 +992,135 @@ class _AllMissionsListState extends State<AllMissions> {
                                                             ),
                                                           ]),
                                                     ),
+                                                    Spacer(),
+                                                    RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text:
+                                                                  '${Consts.end}  :',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                            TextSpan(
+                                                              text:
+                                                                  ' ${mission['end']}  ',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .normal,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                          ]),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Expanded(
+                                                      child: RichText(
+                                                        text: TextSpan(
+                                                            children: <TextSpan>[
+                                                              TextSpan(
+                                                                text:
+                                                                    '${Consts.description}  :',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: CustomColor
+                                                                        .textColor),
+                                                              ),
+                                                              TextSpan(
+                                                                text:
+                                                                    ' ${mission['reason']}  ',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .normal,
+                                                                    color: CustomColor
+                                                                        .textColor),
+                                                              ),
+                                                            ]),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                if (mission['description'] !=
+                                                    null)
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Expanded(
+                                                        child: RichText(
+                                                          text: TextSpan(
+                                                              children: <TextSpan>[
+                                                                TextSpan(
+                                                                  text:
+                                                                      '${Consts.SuperiorDescription}  :',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'irs',
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: CustomColor
+                                                                          .textColor),
+                                                                ),
+                                                                TextSpan(
+                                                                  text:
+                                                                      ' ${mission['description']}  ',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'irs',
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .normal,
+                                                                      color: CustomColor
+                                                                          .textColor),
+                                                                ),
+                                                              ]),
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
-                                          ],
-                                        ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
                           ),
-              ],
-            ),
+                        ),
+            ],
           ),
         ));
   }
@@ -1047,6 +1131,7 @@ class _AllMissionsListState extends State<AllMissions> {
     setState(() {
       isLoading = true;
     });
+    try{
     final response = await http.get(
         Uri.parse('https://afkhambpms.ir/api1/personnels/get-mission'),
         headers: {
@@ -1065,6 +1150,10 @@ class _AllMissionsListState extends State<AllMissions> {
         isLoading = false;
       });
       throw Exception(Exception_consts.dataFetchError);
+    }
+    }catch(e){
+      CustomNotification.show(context, 'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'mission-request');
     }
   }
 }

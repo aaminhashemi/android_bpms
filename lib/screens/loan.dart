@@ -82,7 +82,9 @@ class _LoanState extends State<Loan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(Consts.loanRequest,style: TextStyle(color: CustomColor.textColor)),
+        iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+        title: const Text(Consts.loanRequest,
+            style: TextStyle(color: CustomColor.textColor)),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
@@ -349,107 +351,90 @@ class _AllLoanListState extends State<AllLoans> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(Consts.loansList,style: TextStyle(color: CustomColor.textColor)),
+          iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+          title: Text(Consts.loansList,
+              style: TextStyle(color: CustomColor.textColor)),
         ),
         drawer: AppDrawer(),
-        body: SingleChildScrollView(
-          child: Column(children: [
-            Container(
-              color: CustomColor.backgroundColor,
-              width: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  width: double.infinity,
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    color: CustomColor.buttonColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Loan(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
+        body: Column(children: [
+          Container(
+            color: CustomColor.backgroundColor,
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                width: double.infinity,
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  color: CustomColor.buttonColor,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Loan(),
                               ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    Consts.loanRequest,
-                                    style: TextStyle(
-                                        color: CustomColor.backgroundColor,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
-                          )
-                        ],
-                      ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  Consts.loanRequest,
+                                  style: TextStyle(
+                                      color: CustomColor.backgroundColor,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-            (isLoading)
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : (allLoanlList.isEmpty)
-                    ? Padding(
-                        padding: const EdgeInsets.all(6.0),
-                        child: Center(
-                          child: Card(
-                            elevation: 5,
-                            margin: EdgeInsets.all(16),
-                            child: Container(
-                              color: Colors.white10,
-                              padding: EdgeInsets.all(16),
-                              width: double.infinity,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/images/box.png',
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    Consts.noLoansFound,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ))
-                    : ListView.builder(
+          ),
+          (isLoading)
+              ? Expanded(
+                  child: Center(
+                  child: CircularProgressIndicator(),
+                ))
+              : (allLoanlList.isEmpty)
+                  ? Expanded(
+                      child: Center(
+                      child: Text(
+                        'وام یافت نشد!',
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ))
+                  : Expanded(
+                      child: SingleChildScrollView(
+                          child: Padding(
+                      padding: EdgeInsets.only(bottom: 15),
+                      child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: allLoanlList.length,
                         physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
                           var loan = allLoanlList[index];
                           return Card(
-                            color: CustomColor.cardColor,
+                            color: CustomColor.backgroundColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
                             ),
@@ -463,22 +448,51 @@ class _AllLoanListState extends State<AllLoans> {
                                 });
                               },
                               leading: _isExpandedList[index]
-                                  ? Icon(Icons.keyboard_arrow_up)
-                                  : Icon(Icons.keyboard_arrow_down),
+                                  ? Icon(Icons.keyboard_arrow_up,
+                                      color: CustomColor.drawerBackgroundColor)
+                                  : Icon(Icons.keyboard_arrow_down,
+                                      color: CustomColor.drawerBackgroundColor),
                               shape: LinearBorder.none,
-                              title: Text(
-                                '${Consts.requestDate} : ${loan['jalali_request_date']} ',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 13.0,
-                                ),
+                              title: RichText(
+                                text: TextSpan(children: <TextSpan>[
+                                  TextSpan(
+                                    text: '${Consts.requestDate}  :',
+                                    style: TextStyle(
+                                        fontFamily: 'irs',
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: CustomColor.textColor),
+                                  ),
+                                  TextSpan(
+                                    text: ' ${loan['jalali_request_date']}  ',
+                                    style: TextStyle(
+                                        fontFamily: 'irs',
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.normal,
+                                        color: CustomColor.textColor),
+                                  ),
+                                ]),
                               ),
-                              subtitle: Text(
-                                '${Consts.requestedValue} : ${loan['formatted_requested_value']} ${Consts.priceUnit} ',
-                                style: TextStyle(
-                                  fontStyle: FontStyle.normal,
-                                  fontSize: 13.0,
-                                ),
+                              subtitle: RichText(
+                                text: TextSpan(children: <TextSpan>[
+                                  TextSpan(
+                                    text: '${Consts.requestedValue}  :',
+                                    style: TextStyle(
+                                        fontFamily: 'irs',
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: CustomColor.textColor),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        ' ${loan['formatted_requested_value']} ${Consts.priceUnit}  ',
+                                    style: TextStyle(
+                                        fontFamily: 'irs',
+                                        fontSize: 12.0,
+                                        fontWeight: FontWeight.normal,
+                                        color: CustomColor.textColor),
+                                  ),
+                                ]),
                               ),
                               trailing: InkWell(
                                 child: Container(
@@ -494,109 +508,126 @@ class _AllLoanListState extends State<AllLoans> {
                                 ),
                               ),
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    children: [
-                                      Row(
-                                        children: [
-                                          RichText(
-                                            text: TextSpan(
-                                              style:
-                                                  DefaultTextStyle.of(context)
-                                                      .style,
-                                              children: [
-                                                TextSpan(
-                                                  text:
-                                                      '${Consts.repaymentCount}',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                (loan['repayment_count'] ==
-                                                        null)
-                                                    ? TextSpan(
-                                                        text: '0',
-                                                        style: TextStyle(
-                                                          fontStyle:
-                                                              FontStyle.normal,
-                                                        ),
-                                                      )
-                                                    : TextSpan(
-                                                        text:
-                                                            '${loan['repayment_count']} ',
-                                                        style: TextStyle(
-                                                          fontStyle:
-                                                              FontStyle.normal,
-                                                        ),
-                                                      ),
-                                              ],
-                                            ),
-                                          ),
-                                          Spacer(),
-                                          RichText(
-                                            text: TextSpan(
-                                              style:
-                                                  DefaultTextStyle.of(context)
-                                                      .style,
-                                              children: [
-                                                TextSpan(
-                                                  text:
-                                                      '${Consts.repaymentValue}',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                TextSpan(
-                                                  text:
-                                                      '${loan['formatted_repayment_value']} ${Consts.priceUnit}',
-                                                  style: TextStyle(
-                                                    fontStyle: FontStyle.normal,
+                                Container(
+                                  color: CustomColor.cardColor,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        Row(
+                                          children: [
+                                            RichText(
+                                              text: TextSpan(
+                                                style:
+                                                    DefaultTextStyle.of(context)
+                                                        .style,
+                                                children: [
+                                                  TextSpan(
+                                                    text:
+                                                        '${Consts.repaymentCount} :',
+                                                    style: TextStyle(
+                                                        color: CustomColor
+                                                            .textColor,
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   ),
-                                                ),
-                                              ],
+                                                  (loan['repayment_count'] ==
+                                                          null)
+                                                      ? TextSpan(
+                                                          text: '0',
+                                                          style: TextStyle(
+                                                              fontStyle:
+                                                                  FontStyle
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        )
+                                                      : TextSpan(
+                                                          text:
+                                                              '${loan['repayment_count']} ',
+                                                          style: TextStyle(
+                                                              fontStyle:
+                                                                  FontStyle
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Row(
-                                        children: [
-                                          RichText(
-                                            text: TextSpan(
-                                              style:
-                                                  DefaultTextStyle.of(context)
-                                                      .style,
-                                              children: [
-                                                TextSpan(
-                                                  text:
-                                                      '${Consts.residueValue}',
-                                                  style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                TextSpan(
-                                                  text:
-                                                      '${loan['formatted_residue_value']} ${Consts.priceUnit}',
-                                                  style: TextStyle(
-                                                    fontStyle: FontStyle.normal,
+                                            Spacer(),
+                                            RichText(
+                                              text: TextSpan(
+                                                style:
+                                                    DefaultTextStyle.of(context)
+                                                        .style,
+                                                children: [
+                                                  TextSpan(
+                                                    text:
+                                                        '${Consts.repaymentValue} :',
+                                                    style: TextStyle(
+                                                        color: CustomColor
+                                                            .textColor,
+                                                        fontWeight:
+                                                            FontWeight.bold),
                                                   ),
-                                                ),
-                                              ],
+                                                  TextSpan(
+                                                    text:
+                                                        '${loan['formatted_repayment_value']} ${Consts.priceUnit}',
+                                                    style: TextStyle(
+                                                        fontStyle:
+                                                            FontStyle.normal,
+                                                        color: CustomColor
+                                                            .textColor),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                          Spacer()
-                                        ],
-                                      )
-                                    ],
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            RichText(
+                                              text: TextSpan(
+                                                style:
+                                                    DefaultTextStyle.of(context)
+                                                        .style,
+                                                children: [
+                                                  TextSpan(
+                                                    text:
+                                                        '${Consts.residueValue} :',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: CustomColor
+                                                            .textColor),
+                                                  ),
+                                                  TextSpan(
+                                                    text:
+                                                        '${loan['formatted_residue_value']} ${Consts.priceUnit}',
+                                                    style: TextStyle(
+                                                        fontStyle:
+                                                            FontStyle.normal,
+                                                        color: CustomColor
+                                                            .textColor),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Spacer()
+                                          ],
+                                        )
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                )
                               ],
                             ),
                           );
                         },
                       ),
-          ]),
-        ),
+                    )))
+        ]),
       ),
     );
   }
@@ -607,24 +638,33 @@ class _AllLoanListState extends State<AllLoans> {
     setState(() {
       isLoading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://afkhambpms.ir/api1/personnels/get-loan'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        });
+    try {
+      final response = await http.get(
+          Uri.parse('https://afkhambpms.ir/api1/personnels/get-loan'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          });
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        setState(() {
+          allLoanlList = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        throw Exception(Exception_consts.dataFetchError);
+      }
+    } catch (e) {
+      CustomNotification.show(context, 'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'loan');
+    }finally {
       setState(() {
-        allLoanlList = json.decode(response.body);
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      throw Exception(Exception_consts.dataFetchError);
     }
   }
 }

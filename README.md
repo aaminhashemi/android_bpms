@@ -1,6 +1,6 @@
-# android_bpms1
+# and
 
-bpms android version
+afkham bpms application
 
 ## Getting Started
 

@@ -36,9 +36,36 @@ class AuthService {
     return json.decode(response.body);
   }
 
+  Future<Map<String, dynamic>> otpCheckMobile(String mobile) async {
+    final response =
+        await http.post(Uri.parse('$baseUrl/login/otp-check-mobile'),
+            body: jsonEncode({
+              'mobile': mobile,
+            }),
+            headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        });
+    return json.decode(response.body);
+  }
+
   Future<Map<String, dynamic>> checkCode(String mobile, String code) async {
     final response =
         await http.post(Uri.parse('$baseUrl/change-pass/check-code'),
+            body: jsonEncode({
+              'mobile': mobile,
+              'code': code,
+            }),
+            headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        });
+    return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> otpCheckCode(String mobile, String code) async {
+    final response =
+        await http.post(Uri.parse('$baseUrl/login/otp-check-code'),
             body: jsonEncode({
               'mobile': mobile,
               'code': code,

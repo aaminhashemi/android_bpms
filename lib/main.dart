@@ -1,7 +1,11 @@
-import 'package:and/screens/otp_login.dart';
-import 'package:and/screens/payslip.dart';
-import 'package:and/screens/verify_mobile.dart';
+import 'package:afkham/models/payslip.dart';
+import 'package:afkham/models/rollcal.dart';
+import 'package:hive_flutter/adapters.dart';
+import '../screens/otp_login.dart';
+import '../screens/payslip.dart';
+import '../screens/verify_mobile.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../screens/location.dart';
 import '../screens/welcome.dart';
@@ -12,9 +16,14 @@ import '../screens/login.dart';
 import '../screens/mission_request.dart';
 import '../screens/home.dart';
 import '../utils/custom_color.dart';
+import 'models/coordinate.dart';
 
 
-void main() {
+Future<void> main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(RollcalAdapter());
+  Hive.registerAdapter(CoordinateAdapter());
+  Hive.registerAdapter(PayslipAdapter());
   runApp(const MyApp());
 }
 
@@ -48,7 +57,7 @@ class MyApp extends StatelessWidget {
         '/leave-request': (context) => AllLeaves(),
         '/mission-request': (context) => AllMissions(),
         '/verify-mobile': (context) => VerifyMobileScreen(),
-        '/loc': (context) => MyHomePage(),
+        '/loc': (context) => AllList(),
         '/payslip': (context) => PayslipList(),
       },
       locale: const Locale("fa", "IR"),

@@ -4,16 +4,27 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import './auth_service.dart';
 
-class HomeService{
+class HomeService {
   final String baseUrl;
+
   HomeService(this.baseUrl);
+
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
 
   Future<Map<String, dynamic>> getStatistics() async {
     final token = await authService.getToken();
-
-    final response = await http.get(Uri.parse('$baseUrl/get-statistics'), headers: {
+    final response =
+        await http.get(Uri.parse('$baseUrl/get-statistics'), headers: {
       'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    });
+    return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> detector(longitude, latitude) async {
+    final response = await http
+        .get(Uri.parse('https://afkhambpms.ir/api1/detect-action'), headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     });

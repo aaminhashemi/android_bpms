@@ -1,4 +1,4 @@
-import 'package:and/services/update_service.dart';
+import '../services/update_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
@@ -16,6 +16,7 @@ class _AppDrawerState extends State<AppDrawer> {
   String version = '0';
   final prefs = SharedPreferences.getInstance();
   String profileAddress = '';
+  bool isExpanded = false;
 
   void initState() {
     super.initState();
@@ -30,7 +31,6 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Future<void> loadUserName() async {
     var savedValue = await authService.getInfo();
-    print(savedValue['code']);
     setState(() {
       storedValue = savedValue['name'];
       storedCode = savedValue['code'];
@@ -49,7 +49,6 @@ class _AppDrawerState extends State<AppDrawer> {
     setState(() {
       profileAddress = profile;
     });
-    print(profileAddress);
   }
 
   void _secondLogout(BuildContext context) async {
@@ -70,7 +69,7 @@ class _AppDrawerState extends State<AppDrawer> {
             padding: EdgeInsets.zero,
             children: [
               Container(
-                height: 300.0, // Set your desired height
+                height: 300.0,
                 child: DrawerHeader(
                     decoration: BoxDecoration(
                       color: CustomColor.drawerBackgroundColor,
@@ -92,7 +91,6 @@ class _AppDrawerState extends State<AppDrawer> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                //Spacer(),
                                 Text(
                                   ' نسخه ${version}',
                                   style: TextStyle(
@@ -185,6 +183,15 @@ class _AppDrawerState extends State<AppDrawer> {
                     },
                   ),
                   ExpansionTile(
+                    onExpansionChanged: (bool expanding) {
+                      setState(() {
+                        isExpanded = expanding;
+                      });
+                    },
+                    trailing: Icon(
+                      isExpanded ? Icons.keyboard_arrow_up_outlined  : Icons.keyboard_arrow_down_outlined ,
+                      color: CustomColor.drawerBackgroundColor,
+                    ),
                     expandedAlignment: Alignment.center,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(1.0),
@@ -215,7 +222,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       _buildListTile('فیش حقوقی', onTap: () {
                         Navigator.pushReplacementNamed(context, '/payslip');
                       }),
-                      _buildListTile('ثبت ورود و خروج', onTap: () {
+                      _buildListTile('ورود و خروج', onTap: () {
                         Navigator.pushReplacementNamed(context, '/loc');
                       }),
                     ],

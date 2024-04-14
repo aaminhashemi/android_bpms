@@ -29,162 +29,163 @@ class _AllLeaveListState extends State<AllLeaves> {
 
   Widget build(BuildContext context) {
     return WillPopScope(
-        onWillPop: () async {
-          Navigator.pushReplacementNamed(context, '/main');
-          return false;
-        },
-        child: Scaffold(
-          //backgroundColor: CustomColor.backgroundColor,
+      onWillPop: () async {
+        Navigator.pushReplacementNamed(context, '/main');
+        return false;
+      },
+      child: Scaffold(
+        //backgroundColor: CustomColor.backgroundColor,
 
-          appBar: AppBar(
-            title: Text('مرخصی'),
-          ),
-          drawer: AppDrawer(),
-          body: SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  color: CustomColor.backgroundColor,
-                  width: double.infinity,
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                      color: CustomColor.buttonColor,
-                      child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LeaveRequest(),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'درخواست مرخصی جدید',
-                                    style: TextStyle(
-                                        color: CustomColor.backgroundColor,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )),
-                    ),
+        appBar: AppBar(
+          iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+          title: Text('مرخصی', style: TextStyle(color: CustomColor.textColor)),
+        ),
+        drawer: AppDrawer(),
+        body: //SingleChildScrollView(
+            //child:
+            Column(
+          children: [
+            Container(
+              color: CustomColor.backgroundColor,
+              width: double.infinity,
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
                   ),
+                  color: CustomColor.buttonColor,
+                  child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LeaveRequest(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'درخواست مرخصی جدید',
+                                style: TextStyle(
+                                    color: CustomColor.backgroundColor,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )),
                 ),
-                Column(children: [
-                  (isLoading)
-                      ? Center(
-                          child: CircularProgressIndicator(),
-                        )
-                      : (allLeavelList.isEmpty)
-                          ? Padding(
-                              padding: const EdgeInsets.all(6.0),
-                              child: Center(
-                                child: Card(
-                                  elevation: 5,
-                                  margin: EdgeInsets.all(16),
-                                  child: Container(
-                                    color: Colors.white10,
-                                    padding: EdgeInsets.all(16),
-                                    width: double.infinity,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          'assets/images/box.png',
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          'تاکنون درخواست مرخصی ثبت نکرده اید!',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ))
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemCount: allLeavelList.length,
-                              itemBuilder: (context, index) {
-                                var leave = allLeavelList[index];
-                                return Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(5),
-                                  ),
-                                  elevation: 4.0,
-                                  color: CustomColor.cardColor,
-                                  margin: EdgeInsets.only(
-                                      left: 16, right: 16, top: 12),
-                                  child: ExpansionTile(
-                                    backgroundColor:
-                                        CustomColor.backgroundColor,
-                                    onExpansionChanged: (isExpanded) {
-                                      setState(() {
-                                        _isExpandedList[index] = isExpanded;
-                                      });
-                                    },
-                                    leading: _isExpandedList[index]
-                                        ? Icon(Icons.keyboard_arrow_up)
-                                        : Icon(Icons.keyboard_arrow_down),
-                                    shape: LinearBorder.none,
-                                    title: Text(
-                                      ' تاریخ درخواست : ${leave['jalali_request_date']} ',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12.0,
+              ),
+            ),
+            (isLoading)
+                ? Expanded(
+                    child: Center(
+                    child: CircularProgressIndicator(),
+                  ))
+                : (allLeavelList.isEmpty)
+                    ? Expanded(
+                        child: Center(
+                        child: Text(
+                          'درخواست مرخصی یافت نشد!',
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                      ))
+                    : Expanded(
+                        child: SingleChildScrollView(
+                            child: Padding(
+                                padding: EdgeInsets.only(bottom: 15),
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: allLeavelList.length,
+                                  itemBuilder: (context, index) {
+                                    var leave = allLeavelList[index];
+                                    return Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(5),
                                       ),
-                                    ),
-                                    subtitle: Text(
-                                      'دوره  : ${leave['period']}  ',
-                                      style: TextStyle(
-                                        fontStyle: FontStyle.normal,
-                                      ),
-                                    ),
-                                    trailing: InkWell(
-                                      child: (leave['status'] == 'recorded')
-                                          ? Container(
-                                              //margin: EdgeInsets.all(10),
-                                              padding: EdgeInsets.all(8.0),
-                                              decoration: BoxDecoration(
-                                                color: CustomColor.cardColor,
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                              child: Text(
-                                                '${leave['level']}',
-                                              ),
-                                            )
-                                          : (leave['status'] == 'accepted')
+                                      elevation: 4.0,
+                                      color: CustomColor.backgroundColor,
+                                      margin: EdgeInsets.only(
+                                          left: 16, right: 16, top: 12),
+                                      child: ExpansionTile(
+                                        backgroundColor:
+                                            CustomColor.backgroundColor,
+                                        onExpansionChanged: (isExpanded) {
+                                          setState(() {
+                                            _isExpandedList[index] = isExpanded;
+                                          });
+                                        },
+                                        leading: _isExpandedList[index]
+                                            ? Icon(Icons.keyboard_arrow_up,
+                                                color: CustomColor
+                                                    .drawerBackgroundColor)
+                                            : Icon(Icons.keyboard_arrow_down,
+                                                color: CustomColor
+                                                    .drawerBackgroundColor),
+                                        shape: LinearBorder.none,
+                                        title: RichText(
+                                          text: TextSpan(children: <TextSpan>[
+                                            TextSpan(
+                                              text: 'تاریخ درخواست :',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' ${leave['jalali_request_date']}  ',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                          ]),
+                                        ),
+                                        subtitle: RichText(
+                                          text: TextSpan(children: <TextSpan>[
+                                            TextSpan(
+                                              text: 'دوره :',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                            TextSpan(
+                                              text: ' ${leave['period']}  ',
+                                              style: TextStyle(
+                                                  fontFamily: 'irs',
+                                                  fontSize: 12.0,
+                                                  fontWeight: FontWeight.normal,
+                                                  color: CustomColor.textColor),
+                                            ),
+                                          ]),
+                                        ),
+                                        trailing: InkWell(
+                                          child: (leave['status'] == 'recorded')
                                               ? Container(
+                                                  //margin: EdgeInsets.all(10),
                                                   padding: EdgeInsets.all(8.0),
                                                   decoration: BoxDecoration(
-                                                    color: CustomColor
-                                                        .successColor,
+                                                    color:
+                                                        CustomColor.cardColor,
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             10.0),
@@ -193,103 +194,231 @@ class _AllLeaveListState extends State<AllLeaves> {
                                                     '${leave['level']}',
                                                   ),
                                                 )
-                                              : Container(
-                                                  padding: EdgeInsets.all(8.0),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        CustomColor.dangerColor,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10.0),
-                                                  ),
-                                                  child: Text(
-                                                    '${leave['level']}',
-                                                  ),
-                                                ),
-                                    ),
-                                    children: <Widget>[
-                                      //Padding(
-                                      //padding: const EdgeInsets.all(16.0),
-                                      Container(
-                                        color: CustomColor.cardColor,
-                                        padding: EdgeInsets.all(16.0),
-                                        child: Column(
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  ' نوع :${leave['type']}  ',
-                                                  style: TextStyle(
-                                                    fontStyle: FontStyle.normal,
-                                                  ),
-                                                ),
-                                                Spacer()
-                                              ],
-                                            ),
-                                            Row(
-                                              children: [
-                                                Text(
-                                                  ' شروع :${leave['start']}  ',
-                                                  style: TextStyle(
-                                                    fontStyle: FontStyle.normal,
-                                                  ),
-                                                ),
-                                                Spacer(),
-                                                Text(
-                                                  ' پایان :${leave['end']}  ',
-                                                  style: TextStyle(
-                                                    fontStyle: FontStyle.normal,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    ' توضیحات :${leave['reason']}  ',
-                                                    style: TextStyle(
-                                                      fontStyle:
-                                                          FontStyle.normal,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            if (leave['description'] != null)
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      ' توضیحات سرپرست :${leave['description']}',
-                                                      style: TextStyle(
-                                                        fontStyle:
-                                                            FontStyle.normal,
+                                              : (leave['status'] == 'accepted')
+                                                  ? Container(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      decoration: BoxDecoration(
+                                                        color: CustomColor
+                                                            .successColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
                                                       ),
-                                                      overflow:
-                                                          TextOverflow.visible,
+                                                      child: Text(
+                                                        '${leave['level']}',
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      decoration: BoxDecoration(
+                                                        color: CustomColor
+                                                            .dangerColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                      ),
+                                                      child: Text(
+                                                        '${leave['level']}',
+                                                      ),
                                                     ),
-                                                  ),
-                                                ],
-                                              ),
-                                          ],
                                         ),
-                                      )
-                                      //),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                ])
-              ],
-            ),
-          ),
-        ));
+                                        children: <Widget>[
+                                          //Padding(
+                                          //padding: const EdgeInsets.all(16.0),
+                                          Container(
+                                            color: CustomColor.cardColor,
+                                            padding: EdgeInsets.all(16.0),
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    RichText(
+                                                        text: TextSpan(
+                                                            children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: 'نوع :',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                          TextSpan(
+                                                            text:
+                                                                ' ${leave['type']}  ',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                fontSize: 12.0,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                        ])),
+                                                    Spacer()
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    RichText(
+                                                        text: TextSpan(
+                                                            children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: 'شروع :',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                          TextSpan(
+                                                            text:
+                                                                ' ${leave['start']}  ',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                        ])),
+                                                    Spacer(),
+                                                    RichText(
+                                                        text: TextSpan(
+                                                            children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: 'پایان :',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                          TextSpan(
+                                                            text:
+                                                                ' ${leave['end']}  ',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                        ]))
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Expanded(
+                                                        child: RichText(
+                                                            text: TextSpan(
+                                                                children: <TextSpan>[
+                                                          TextSpan(
+                                                            text: 'توضیحات :',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                          TextSpan(
+                                                            text:
+                                                                ' ${leave['reason']}  ',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                fontSize: 12.0,
+                                                                color: CustomColor
+                                                                    .textColor),
+                                                          ),
+                                                        ]))),
+                                                  ],
+                                                ),
+                                                if (leave['description'] !=
+                                                    null)
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment.start,
+                                                    children: [
+                                                      Expanded(
+                                                          child: RichText(
+                                                              text: TextSpan(
+                                                                  children: <TextSpan>[
+                                                            TextSpan(
+                                                              text:
+                                                                  'توضیحات سرپرست :',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                            TextSpan(
+                                                              text:
+                                                                  ' ${leave['description']}  ',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .normal,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                          ]))),
+                                                    ],
+                                                  ),
+                                              ],
+                                            ),
+                                          )
+                                          //),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                )))),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> fetchData(BuildContext context) async {
@@ -298,24 +427,36 @@ class _AllLeaveListState extends State<AllLeaves> {
     setState(() {
       isLoading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://afkhambpms.ir/api1/personnels/get-leave'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        });
+    try {
+      final response = await http.get(
+          Uri.parse('https://afkhambpms.ir/api1/personnels/get-leave'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          });
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        setState(() {
+          allLeavelList = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        throw Exception('خطا در دریافت داده ها');
+      }
+    } catch (e) {
+      CustomNotification.show(
+          context,
+          'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
+          'leave-request');
+    } finally {
       setState(() {
-        allLeavelList = json.decode(response.body);
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      throw Exception('خطا در دریافت داده ها');
     }
   }
 }
@@ -386,6 +527,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                   ),
                 ),
               ),
+              SizedBox(width: 8.0),
               Expanded(
                   child: Container(
                       decoration: BoxDecoration(
@@ -423,6 +565,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                   ),
                 ),
               ),
+              SizedBox(width: 8.0),
               Expanded(
                   child: Container(
                       decoration: BoxDecoration(
@@ -657,6 +800,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                   ),
                 ),
               ),
+              SizedBox(width: 8.0),
               Expanded(
                   child: Container(
                       decoration: BoxDecoration(
@@ -703,6 +847,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                   ),
                 ),
               ),
+              SizedBox(width: 8.0),
               Expanded(
                   child: Container(
                       decoration: BoxDecoration(
@@ -790,16 +935,18 @@ class _LeaveRequestState extends State<LeaveRequest> {
           period,
           type);
       if (response['status'] == 'successful') {
-        CustomNotification.show(context,'موفقیت آمیز','درخواست مرخصی با موفقیت ثبت شد.','/leave-request');
-
-      } else if (response['status'] == 'imperfect_data'){
-        CustomNotification.show(context,'خطا','لطفا اطلاعات را به صورت کامل وارد کنید.','');
+        CustomNotification.show(context, 'موفقیت آمیز',
+            'درخواست مرخصی با موفقیت ثبت شد.', '/leave-request');
+      } else if (response['status'] == 'imperfect_data') {
+        CustomNotification.show(
+            context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
       } else {
-        CustomNotification.show(context,'ناموفق','در ثبت درخواست مشکلی وجود دارد.','');
+        CustomNotification.show(
+            context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } catch (e) {
-      CustomNotification.show(context,'ناموفق','خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.','');
-
+      CustomNotification.show(context, 'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', '');
     } finally {
       setState(() {
         isLoading = false;
@@ -816,7 +963,9 @@ class _LeaveRequestState extends State<LeaveRequest> {
       },
       child: Scaffold(
           appBar: AppBar(
-            title: Text('مرخصی',style: TextStyle(color: CustomColor.textColor)),
+            iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+            title:
+                Text('مرخصی', style: TextStyle(color: CustomColor.textColor)),
           ),
           drawer: AppDrawer(),
           body: SingleChildScrollView(
@@ -862,6 +1011,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                         ),
                                       ),
                                     ),
+                                    SizedBox(width: 8.0),
                                     Expanded(
                                         child: Container(
                                       decoration: BoxDecoration(
@@ -888,6 +1038,8 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                                 clearHourFields();
                                               });
                                             },
+                                            iconEnabledColor: CustomColor
+                                                .drawerBackgroundColor,
                                             items: leavePeriods.map((period) {
                                               return DropdownMenuItem<String>(
                                                 value: period,
@@ -922,13 +1074,14 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                     Container(
                                       width: 75,
                                       child: Text(
-                                        'دوره مرخصی :',
+                                        'نوع مرخصی :',
                                         style: TextStyle(
                                           fontSize: 10.0,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ),
+                                    SizedBox(width: 8.0),
                                     Expanded(
                                         child: Container(
                                             decoration: BoxDecoration(
@@ -956,6 +1109,8 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                                       leaveType = newValue!;
                                                     });
                                                   },
+                                                  iconEnabledColor: CustomColor
+                                                      .drawerBackgroundColor,
                                                   items: leaveTypes.map((type) {
                                                     return DropdownMenuItem<
                                                         String>(
@@ -1005,6 +1160,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                         ),
                                       ),
                                     ),
+                                    SizedBox(width: 8.0),
                                     Expanded(
                                         child: Container(
                                             decoration: BoxDecoration(
@@ -1014,23 +1170,22 @@ class _LeaveRequestState extends State<LeaveRequest> {
                                                           CustomColor.textColor,
                                                       width: 4.0)),
                                             ),
-                                            child: InputDecorator(
-                                                decoration: InputDecoration(
-                                                  filled: true,
-                                                  fillColor: Colors.white,
-                                                  contentPadding:
-                                                      EdgeInsets.only(
-                                                          right: 1, left: 1),
-                                                  isDense: true,
-                                                  border: InputBorder.none,
-                                                ),
-                                                child: TextField(
-                                                  controller: reasonController,
-                                                  maxLines: 3,
-                                                  style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                  ),
-                                                ))))
+                                            child: TextField(
+                                              controller: reasonController,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: Colors.white,
+                                                contentPadding:
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 8),
+                                                isDense: true,
+                                                border: InputBorder.none,
+                                              ),
+                                              maxLines: 3,
+                                              style: TextStyle(
+                                                fontFamily: 'irs',
+                                              ),
+                                            )))
                                   ]),
                               SizedBox(height: 24.0),
                               ElevatedButton(

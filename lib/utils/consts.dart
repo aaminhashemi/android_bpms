@@ -40,8 +40,8 @@ class Consts{
   static const String day='روز';
   static const String destination='مقصد';
   static const String description='توضیحات';
-  static const String startTime='ساعت آغاز';
-  static const String startDate='تاریخ آغاز';
+  static const String startTime='ساعت شروع';
+  static const String startDate='تاریخ شروع';
   static const String endTime='ساعت پایان';
   static const String endDate='تاریخ پایان';
   static const String hourly='ساعتی';

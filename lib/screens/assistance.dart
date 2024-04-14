@@ -76,7 +76,7 @@ class _AssistanceState extends State<Assistance> {
     DateTime dt = DateTime.now();
     Jalali j = dt.toJalali();
     final f = j.formatter;
-    dateController.text = '1402/10/25';
+    dateController.text = '${f.yyyy}/${f.mm}/${f.dd}';
   }
 
   Future<void> save() async {
@@ -92,18 +92,21 @@ class _AssistanceState extends State<Assistance> {
         valueController.text.trim(),
       );
       if (response['status'] == 'successful') {
-        CustomNotification.show(context, 'موفقیت آمیز', 'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
+        CustomNotification.show(context, 'موفقیت آمیز',
+            'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
       } else if (response['status'] == 'existed') {
-        CustomNotification.show(context, 'خطا', 'درخواست مساعده قبلا ثبت شده است.', '/assistance');
-
-      } else if (response['status'] == 'imperfect_data'){
-        CustomNotification.show(context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
-
+        CustomNotification.show(
+            context, 'خطا', 'درخواست مساعده قبلا ثبت شده است.', '/assistance');
+      } else if (response['status'] == 'imperfect_data') {
+        CustomNotification.show(
+            context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
       } else {
-        CustomNotification.show(context,'ناموفق','در ثبت درخواست مشکلی وجود دارد.','');
+        CustomNotification.show(
+            context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } catch (e) {
-      CustomNotification.show(context,'ناموفق','خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.','');
+      CustomNotification.show(context, 'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', '');
     } finally {
       setState(() {
         isLoading = false;
@@ -115,7 +118,9 @@ class _AssistanceState extends State<Assistance> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('درخواست مساعده',style: TextStyle(color: CustomColor.textColor)),
+        iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+        title: const Text('درخواست مساعده',
+            style: TextStyle(color: CustomColor.textColor)),
       ),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
@@ -229,11 +234,15 @@ class _AssistanceState extends State<Assistance> {
   Widget _buildSaveButton() {
     return ElevatedButton(
       onPressed: isLoading ? null : save,
-      child: isLoading ? CircularProgressIndicator() : Text('ثبت',style: TextStyle(color: Colors.white),),
+      child: isLoading
+          ? CircularProgressIndicator()
+          : Text(
+              'ثبت',
+              style: TextStyle(color: Colors.white),
+            ),
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-              10.0), // Adjust the radius as needed
+          borderRadius: BorderRadius.circular(10.0),
         ),
         minimumSize: const Size(double.infinity, 48),
         primary: CustomColor.successColor,
@@ -256,6 +265,8 @@ class AllAssistances extends StatefulWidget {
 class _AllAssistanceListState extends State<AllAssistances> {
   bool isLoading = true;
   List<dynamic> allAssistancelList = [];
+  late List<bool> _isExpandedList =
+      List.generate(allAssistancelList.length, (index) => false);
 
   @override
   void initState() {
@@ -271,32 +282,37 @@ class _AllAssistanceListState extends State<AllAssistances> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('مساعده',style: TextStyle(color: CustomColor.textColor)),
+          iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
+          title: Text('مساعده', style: TextStyle(color: CustomColor.textColor)),
         ),
         drawer: AppDrawer(),
-        body: SingleChildScrollView(
-          child: Column(children: [
-            Container(
-              color: CustomColor.backgroundColor,
-              width: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    color: CustomColor.buttonColor,
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Assistance(),
-                            ),
-                          );
-                        },
+        body: Column(children: [
+          Container(
+            color: CustomColor.backgroundColor,
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  color: CustomColor.buttonColor,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Assistance(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -308,129 +324,219 @@ class _AllAssistanceListState extends State<AllAssistances> {
                                   fontWeight: FontWeight.bold),
                             ),
                             //SizedBox(width: 8.0),
-                            //Icon(Icons.arrow_circle_left),
                           ],
                         ),
                       ),
-                    )),
-              ),
+                    ),
+                  )),
             ),
-            (isLoading)
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : (allAssistancelList.isEmpty)
-                    ? Padding(
-                        padding: const EdgeInsets.all(6.0),
-                        child: Center(
-                          child: Card(
-                            elevation: 5,
-                            margin: EdgeInsets.all(16),
-                            child: Container(
-                              color: Colors.white10,
-                              padding: EdgeInsets.all(16),
-                              width: double.infinity,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/images/box.png',
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'تاکنون درخواست مساعده ثبت نکرده اید!',
-                                    style: TextStyle(
-                                      fontSize: 18,
+          ),
+          (isLoading)
+              ? Expanded(
+                  child: Center(
+                  child: CircularProgressIndicator(),
+                ))
+              : (allAssistancelList.isEmpty)
+                  ? Expanded(
+                      child: Center(
+                      child: Text(
+                        'مساعده یافت نشد!',
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ))
+                  : Expanded(
+                      child: SingleChildScrollView(
+                          child: Padding(
+                              padding: EdgeInsets.only(bottom: 15),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: allAssistancelList.length,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  var assistance = allAssistancelList[index];
+                                  return Card(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ))
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: allAssistancelList.length,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          var assistance = allAssistancelList[index];
-                          return Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            elevation: 4.0,
-                            color: CustomColor.backgroundColor,
-                            margin:
-                                EdgeInsets.only(left: 16, right: 16, top: 12),
-                            child: ExpansionTile(
-                              shape: LinearBorder.none,
-                              leading: Icon(Icons.keyboard_arrow_down),
-                              title: Text(
-                                ' دوره :${assistance['payment_period']} ',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16.0,
-                                    color: CustomColor.textColor),
-                              ),
-                              subtitle: Text(
-                                'مبلغ  : ${assistance['price']} ریال ',
-                                style: TextStyle(
-                                    fontStyle: FontStyle.normal,
-                                    color: CustomColor.textColor),
-                              ),
-                              trailing: InkWell(
-                                child: Container(
-                                  padding: EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-                                    color: CustomColor.cardColor,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  child: Text(
-                                    '${assistance['level']}',
-                                    style:
-                                        TextStyle(color: CustomColor.textColor),
-                                  ),
-                                ),
-                              ),
-                              children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        ' تاریخ ثبت : ${assistance['record_date']}  ',
-                                        style: TextStyle(
-                                            fontStyle: FontStyle.normal,
-                                            color: CustomColor.textColor),
+                                    elevation: 4.0,
+                                    color: CustomColor.backgroundColor,
+                                    margin: EdgeInsets.only(
+                                        left: 16, right: 16, top: 12),
+                                    child: ExpansionTile(
+                                      onExpansionChanged: (isExpanded) {
+                                        setState(() {
+                                          _isExpandedList[index] = isExpanded;
+                                        });
+                                      },
+                                      leading: _isExpandedList[index]
+                                          ? Icon(Icons.keyboard_arrow_up,
+                                              color: CustomColor
+                                                  .drawerBackgroundColor)
+                                          : Icon(Icons.keyboard_arrow_down,
+                                              color: CustomColor
+                                                  .drawerBackgroundColor),
+                                      shape: LinearBorder.none,
+                                      title: RichText(
+                                        text: TextSpan(children: <TextSpan>[
+                                          TextSpan(
+                                            text: 'دوره :',
+                                            style: TextStyle(
+                                                fontFamily: 'irs',
+                                                fontSize: 12.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: CustomColor.textColor),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                ' ${assistance['payment_period']}',
+                                            style: TextStyle(
+                                                fontFamily: 'irs',
+                                                fontSize: 12.0,
+                                                fontWeight: FontWeight.normal,
+                                                color: CustomColor.textColor),
+                                          ),
+                                        ]),
                                       ),
-                                      if (assistance['deposit_date'] != null)
-                                        Text(
-                                          ' تاریخ پرداخت : ${assistance['payment_date']}  ',
-                                          style: TextStyle(
-                                              fontStyle: FontStyle.normal,
-                                              color: CustomColor.textColor),
-                                        )
-                                      else
-                                        Text(
-                                          ' تاریخ پرداخت : نامشخص  ',
-                                          style: TextStyle(
-                                              fontStyle: FontStyle.normal,
-                                              color: CustomColor.textColor),
+                                      subtitle: RichText(
+                                        text: TextSpan(children: <TextSpan>[
+                                          TextSpan(
+                                            text: 'مبلغ :',
+                                            style: TextStyle(
+                                                fontFamily: 'irs',
+                                                fontSize: 12.0,
+                                                fontWeight: FontWeight.bold,
+                                                color: CustomColor.textColor),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                ' ${assistance['price']} ریال ',
+                                            style: TextStyle(
+                                                fontFamily: 'irs',
+                                                fontSize: 12.0,
+                                                fontWeight: FontWeight.normal,
+                                                color: CustomColor.textColor),
+                                          ),
+                                        ]),
+                                      ),
+                                      trailing: InkWell(
+                                        child: Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          decoration: BoxDecoration(
+                                            color: CustomColor.cardColor,
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          child: Text(
+                                            '${assistance['level']}',
+                                            style: TextStyle(
+                                                color: CustomColor.textColor),
+                                          ),
                                         ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      )
-          ]),
-        ),
+                                      ),
+                                      children: <Widget>[
+                                        Container(
+                                          color: CustomColor.cardColor,
+                                          padding: EdgeInsets.all(16.0),
+                                          child: Row(
+                                            children: [
+                                              RichText(
+                                                text: TextSpan(
+                                                    children: <TextSpan>[
+                                                      TextSpan(
+                                                        text: 'تاریخ ثبت :',
+                                                        style: TextStyle(
+                                                            fontFamily: 'irs',
+                                                            fontSize: 12.0,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: CustomColor
+                                                                .textColor),
+                                                      ),
+                                                      TextSpan(
+                                                        text:
+                                                            ' ${assistance['record_date']}',
+                                                        style: TextStyle(
+                                                            fontFamily: 'irs',
+                                                            fontSize: 12.0,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .normal,
+                                                            color: CustomColor
+                                                                .textColor),
+                                                      ),
+                                                    ]),
+                                              ),
+                                              Spacer(),
+                                              if (assistance['deposit_date'] !=
+                                                  null)
+                                                RichText(
+                                                  text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text:
+                                                              'تاریخ پرداخت :',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              ' ${assistance['payment_date']}',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ]),
+                                                )
+                                              else
+                                                RichText(
+                                                  text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text: 'تاریخ ثبت :',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text: ' نامشخص',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ]),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ))))
+        ]),
       ),
     );
   }
@@ -441,24 +547,36 @@ class _AllAssistanceListState extends State<AllAssistances> {
     setState(() {
       isLoading = true;
     });
-    final response = await http.get(
-        Uri.parse('https://afkhambpms.ir/api1/personnels/get-assistance'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        });
+    try {
+      final response = await http.get(
+          Uri.parse('https://afkhambpms.ir/api1/personnels/get-assistance'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          });
 
-    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+        setState(() {
+          allAssistancelList = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        throw Exception('خطا در دریافت داده ها');
+      }
+    } catch (e) {
+      CustomNotification.show(
+          context,
+          'ناموفق',
+          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
+          'assistance');
+    } finally {
       setState(() {
-        allAssistancelList = json.decode(response.body);
         isLoading = false;
       });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      throw Exception('خطا در دریافت داده ها');
     }
   }
 }
