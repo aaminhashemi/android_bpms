@@ -1,8 +1,8 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../models/payslip.dart';
@@ -13,12 +13,10 @@ import '../utils/consts.dart';
 import '../utils/exception_consts.dart';
 import '../services/auth_service.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart' as path_provider;
-import 'package:http/http.dart' as http;
-import 'dart:io';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FlutterDownloader.initialize(debug: true);
   runApp(MyApp());
 }
 
@@ -43,6 +41,7 @@ class PayslipList extends StatefulWidget {
 class _PayslipListState extends State<PayslipList> {
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
   bool isLoading = true;
+  bool isConnected = false;
   List<dynamic> payslipList = [];
   Box<Payslip>? payslipBox;
   List<Payslip>? results=[];
@@ -52,11 +51,22 @@ class _PayslipListState extends State<PayslipList> {
     super.initState();
     fetchData();
     initBox();
+    connectionChecker();
   }
-
+  Future<void> connectionChecker() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        isConnected = false;
+      });
+    } else {
+      setState(() {
+        isConnected = true;
+      });
+    }
+  }
   Future<void> initBox() async {
     payslipBox=await Hive.openBox('payslipBox');
-    print(payslipBox?.length);
     setState(() {
 
     });
@@ -92,14 +102,10 @@ class _PayslipListState extends State<PayslipList> {
         });
 
         if (response.statusCode == 200) {
-
-          //box.clear();
           var temp=json.decode(response.body);
           for(var pay in temp){
             var check=await box.values.where((data) => data.id == pay['id'].toInt()).toList();
             if(check.length==0){
-              print(pay);
-              //print(pay['yearly_period']);
               Payslip payslip=Payslip(
                 id:pay['id'].toInt(),
                 payment_period:pay['payment_period'],
@@ -301,12 +307,17 @@ class _PayslipListState extends State<PayslipList> {
                           ),
                           trailing: Icon(Icons.arrow_forward,color: CustomColor.textColor,),
                           onTap: () {
+                            (isConnected)?
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => PayslipDetails(payslip),
                               ),
-                            );
+                            ):CustomNotification.show(
+                                context,
+                                'ناموفق',
+                                'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
+                                '');
                           },
                         ),
                       );
@@ -318,6 +329,7 @@ class _PayslipListState extends State<PayslipList> {
 }
 
 class PayslipDetails extends StatelessWidget {
+
   final dynamic payslip;
 
   PayslipDetails(this.payslip);
@@ -330,78 +342,7 @@ class PayslipDetails extends StatelessWidget {
       throw 'Could not launch $url';
     }
   }
-  Future<void> downloadFile() async {
-    final url = 'https://afkhambpms.ir/api1/files/show/${payslip['license']}';
-    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    final initializationSettings = InitializationSettings(
-      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-    );
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: _handleNotificationClick);
 
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        print('di');
-        final directory = await getApplicationDocumentsDirectory();
-        final filePath = '${directory.path}/${payslip["payment_period"]}.pdf';
-        final file = File(filePath);
-        await file.writeAsBytes(response.bodyBytes);
-        // Show success message or perform any other actions here
-        await _showNotification(flutterLocalNotificationsPlugin, filePath);
-
-      } else {
-        throw 'Failed to download file: ${response.statusCode}';
-      }
-    } catch (e) {
-      throw 'Error downloading file: $e';
-    }
-  }
-  Future<void> _handleNotificationClick(String? payload) async {
-    if (payload != null) {
-      await _openDownloadedFile(payload);;
-      print('hi');
-
-    }
-  }
-  Future<void> _showNotification(
-      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
-      String filePath,
-      ) async {
-    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'downloaded_files_channel', // Change this to a unique channel ID
-      'Downloaded Files',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-    const platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-    );
-
-    // Show the notification
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'Download Complete',
-      'File downloaded successfully',
-      platformChannelSpecifics,
-      payload: filePath, // Pass the file path as payload
-    );
-  }
-  Future<void> _openDownloadedFile(String filePath) async {
-    try {
-      final file = File(filePath);
-      if (await file.exists()) {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PDFViewerWidget(filePath: filePath),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error opening file: $e');
-    }
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -421,14 +362,23 @@ class PayslipDetails extends StatelessWidget {
                   'https://afkhambpms.ir/api1/files/show/${payslip['license']}'),
             )),
             ElevatedButton(
-              onPressed: downloadFile,
-              child: Text(Consts.download),
+              onPressed: _launchURL,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("دریافت"),
+                  SizedBox(width: 4),
+                  // Add some spacing between the icon and text
+                  Icon(Icons.download),
+                  // Add the desired icon
+                ],
+              ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                       10.0), // Adjust the radius as needed
                 ),
-                primary: CustomColor.successColor,
+                primary: CustomColor.test1,
               ),
             ),
           ],

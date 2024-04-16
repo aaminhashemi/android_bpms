@@ -52,7 +52,7 @@ class ActionService {
 
   Future<Map<String, dynamic>> getLastActionInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    return {'distance': prefs.getString(thresholdDistanceKey) ??50, 'type': prefs.getString(lastActionTypeKey), 'description': prefs.getString(lastActionDescriptionKey)};
+    return {'distance': prefs.getString(thresholdDistanceKey) ??'50', 'type': prefs.getString(lastActionTypeKey), 'description': prefs.getString(lastActionDescriptionKey)};
   }
 
   Future<Map<String, dynamic>> updateManual(

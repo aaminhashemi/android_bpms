@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/update_service.dart';
@@ -35,16 +36,27 @@ class _WelcomeState extends State<WelcomeScreen> {
 
   void checkAccessToken() async {
     final accessToken = await authService.getToken();
-    if (accessToken != null) {
-     // final validAccessToken =
-     //     await authService.isAccessTokenValid(accessToken);
-    //  await Future.delayed(Duration(seconds: 3));
-    //  (validAccessToken)
-          /*?*/ Navigator.pushReplacementNamed(context, '/main');
-      //    : Navigator.pushReplacementNamed(context, '/login');
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult != ConnectivityResult.none) {
+      if (accessToken != null) {
+        final validAccessToken =
+            await authService.isAccessTokenValid(accessToken);
+        await Future.delayed(Duration(seconds: 3));
+        (validAccessToken)
+            ? Navigator.pushReplacementNamed(context, '/main')
+            : Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        await Future.delayed(Duration(seconds: 3));
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     } else {
-      await Future.delayed(Duration(seconds: 3));
-      Navigator.pushReplacementNamed(context, '/login');
+      if (accessToken != null) {
+        await Future.delayed(Duration(seconds: 3));
+        Navigator.pushReplacementNamed(context, '/main');
+      } else {
+        await Future.delayed(Duration(seconds: 3));
+        Navigator.pushReplacementNamed(context, '/login');
+      }
     }
   }
 
@@ -53,7 +65,7 @@ class _WelcomeState extends State<WelcomeScreen> {
     setState(() {
       version = versionNumber;
     });
-    try{
+    try {
       final response = await updateService.check();
       if (response['status'] == 'successful') {
         showDialog(
@@ -61,14 +73,16 @@ class _WelcomeState extends State<WelcomeScreen> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text(Consts.update,
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
+                  style:
+                      TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
               content: Text(Consts.updateIsAvailable,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal)),
+                  style:
+                      TextStyle(fontSize: 12, fontWeight: FontWeight.normal)),
               actions: <Widget>[
                 TextButton(
                   style: ButtonStyle(
                     backgroundColor:
-                    MaterialStateProperty.all<Color>(Colors.green),
+                        MaterialStateProperty.all<Color>(Colors.green),
                   ),
                   onPressed: () {
                     _launchURL(response['url']);
@@ -77,7 +91,8 @@ class _WelcomeState extends State<WelcomeScreen> {
                 ),
                 TextButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.red),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -89,9 +104,9 @@ class _WelcomeState extends State<WelcomeScreen> {
           },
         );
       }
-    }catch(e){
-     // CustomNotification.show(context, 'ناموفق',
-     //     'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'home');
+    } catch (e) {
+      // CustomNotification.show(context, 'ناموفق',
+      //     'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'home');
     }
   }
 

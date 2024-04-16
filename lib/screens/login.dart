@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:afkham/services/action_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
@@ -17,6 +18,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
+  final ActionService actionService = ActionService('https://afkhambpms.ir/api1');
   final UpdateService updateService =
       UpdateService('https://afkhambpms.ir/api1/update');
   TextEditingController mobileController = TextEditingController();
@@ -38,9 +40,13 @@ class _LoginScreenState extends State<LoginScreen> {
         mobileController.text.trim(),
         passwordController.text,
       );
-
+print(loginResponse);
       if (loginResponse.containsKey('access_token')) {
         authService.saveToken(loginResponse['access_token']);
+        authService.saveMaxAssistanceValue(loginResponse['max_assistance_value']);
+        actionService.saveThresholdDistance(loginResponse['distance']);
+        actionService.saveLastActionDescription(loginResponse['last_action_description']);
+        actionService.saveLastActionType(loginResponse['last_action_type']);
         authService.saveInfo(loginResponse['user'], loginResponse['code']);
         _fetchImageFromServer(loginResponse['code']);
         Navigator.pushReplacementNamed(context, '/main');

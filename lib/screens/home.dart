@@ -99,50 +99,54 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> sync() async {
-    setState(() {
-      isSyncing=true;
-    });
-    rollcalBox = await Hive.openBox('rollcalBox');
-    results = await rollcalBox?.values.where((data) => data.synced == false).toList();
-    ActionService actionService = ActionService('https://afkhambpms.ir/api1');
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        isSyncing = true;
+      });
+      rollcalBox = await Hive.openBox('rollcalBox');
+      results =
+      await rollcalBox?.values.where((data) => data.synced == false).toList();
+      ActionService actionService = ActionService('https://afkhambpms.ir/api1');
 
-    if (results!.isNotEmpty) {
-      for (var result in results!) {
-        try {
-          final actionResponse = await actionService.updateManual(
-            result.date,
-            result.time,
-            result.type,
-            result.status,
-            result.description,
-          );
-
-          if (actionResponse['status'] == 'successful') {
-
-            Rollcal rollcal = Rollcal(
-              id: result.id,
-              status: result.status,
-              date: result.date,
-              time: result.time,
-              type: result.type,
-              synced: true,
-              description: result.description,
+      if (results!.isNotEmpty) {
+        for (var result in results!) {
+          try {
+            final actionResponse = await actionService.updateManual(
+              result.date,
+              result.time,
+              result.type,
+              result.status,
+              result.description,
             );
-            rollcalBox?.put(result.key, rollcal);
-            print('1');
-            print('synced');
-            print('1');
+
+            if (actionResponse['status'] == 'successful') {
+              Rollcal rollcal = Rollcal(
+                id: result.id,
+                status: result.status,
+                date: result.date,
+                time: result.time,
+                type: result.type,
+                synced: true,
+                description: result.description,
+              );
+              rollcalBox?.put(result.key, rollcal);
+              print('1');
+              print('synced');
+              print('1');
+            }
+          } catch (e) {
+            CustomNotification.show(
+                context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
           }
-        } catch (e) {
-          CustomNotification.show(context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
         }
       }
-    }
 
-    setState(() {
-      isSyncing=false;
-    });
-    print(isSyncing);
+      setState(() {
+        isSyncing = false;
+      });
+      print(isSyncing);
+    }
   }
 
 /*  Future<void> connectionChecker() async {
@@ -293,7 +297,7 @@ class _HomeState extends State<Home> {
           }
         }
       }
-      if (!requestAllowed) {
+      if (requestAllowed) {
         final box = Hive.box<Rollcal>('rollcalBox');
         int id = box.length;
         var time=getCurrentTime();
@@ -365,7 +369,7 @@ class _HomeState extends State<Home> {
           }
         }
       }
-      if (!requestAllowed) {
+      if (requestAllowed) {
         var time=getCurrentTime();
         if(!isSyncing){
           try {
@@ -456,7 +460,7 @@ class _HomeState extends State<Home> {
           }
         }
       }
-      if (!requestAllowed) {
+      if (requestAllowed) {
         var time=getCurrentTime();
 
         final box = Hive.box<Rollcal>('rollcalBox');
@@ -571,6 +575,8 @@ class _HomeState extends State<Home> {
             longitude: double.parse(targetLongitudes[i]),
           );
           box.add(coordinate);
+          print('box.length');
+          print(box.length);
         }
 
         setState(() {
@@ -731,7 +737,7 @@ class _HomeState extends State<Home> {
                                     ]))),
                           ]),
                     )),
-                    (!isInRange)
+                    (isInRange)
                         ? (lastActionType == 'arrival')
                             ? Padding(
                                 padding: EdgeInsets.only(

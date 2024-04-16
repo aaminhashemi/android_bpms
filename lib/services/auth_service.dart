@@ -9,6 +9,7 @@ class AuthService {
   static const String tokenKey = 'access_token';
   static const String infoKey = 'user_info';
   static const String codeKey = 'user_national_code';
+  static const String maxAssistanceValueKey = 'max_assistance_value';
 
   AuthService(this.baseUrl);
 
@@ -82,6 +83,18 @@ class AuthService {
     return prefs.getString(tokenKey);
   }
 
+  Future<String> getMaxAssistanceValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? max= prefs.getString(maxAssistanceValueKey);
+
+    String defaultAssistanceValue = '20000000'; // Default value
+
+    if (max != null) {
+      return max;
+    }
+    return defaultAssistanceValue;
+  }
+
   Future<Map<String, dynamic>> getInfo() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> dataArray = ['item1', 'item2', 'item3'];
@@ -92,6 +105,11 @@ class AuthService {
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(tokenKey, token);
+  }
+
+  Future<void> saveMaxAssistanceValue(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(maxAssistanceValueKey, token);
   }
 
   Future<void> saveInfo(String userName, String code) async {

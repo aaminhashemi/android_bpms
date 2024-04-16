@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:afkham/repositories/rollcal_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linear_datepicker/flutter_datepicker.dart';
 import 'package:hive/hive.dart';
@@ -8,7 +7,6 @@ import 'package:shamsi_date/shamsi_date.dart';
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
-import 'package:sqflite/sqflite.dart';
 import '../models/rollcal.dart';
 import '../services/auth_service.dart';
 import '../utils/custom_color.dart';
@@ -150,365 +148,392 @@ class _AllListState extends State<AllList> {
                   style: TextStyle(color: CustomColor.textColor)),
             ),
             drawer: AppDrawer(),
-            body: (isSyncing)?
-            Center(
-        child: Positioned.fill(
-        child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.greenAccent,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white,
-                  blurRadius: 5,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  ' در حال به روز رسانی %${(syncPercent * 100).toInt()}',
-                  style: TextStyle(
-                      fontSize: 15, fontStyle: FontStyle.italic),
-                ),
-                SizedBox(height: 16),
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child:
-                LinearProgressIndicator(
-                  value: syncPercent,
-                  backgroundColor: Colors.grey[300],
-                  valueColor:
-                  AlwaysStoppedAnimation<Color>(Colors.green),
-                ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ),
-    )):Column(children: [
-              Container(
-                color: CustomColor.backgroundColor,
-                width: double.infinity,
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    color: CustomColor.buttonColor,
-                    child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MyHomePage(),
+            body: (isSyncing)
+                ? Center(
+                child:Stack(children: [
+                    Positioned.fill(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.greenAccent,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10.0),
+                              padding: EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    ' در حال به روز رسانی %${(syncPercent * 100).toInt()}',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontStyle: FontStyle.italic),
+                                  ),
+                                  SizedBox(height: 16),
+                                  LinearProgressIndicator(
+                                      value: syncPercent,
+                                      backgroundColor: Colors.grey[300],
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.green),
+                                    ),
+
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  ]))
+                : Column(children: [
+                    Container(
+                      color: CustomColor.backgroundColor,
+                      width: double.infinity,
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          color: CustomColor.buttonColor,
+                          child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MyHomePage(),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'ثبت ورود و خروج جدید',
+                                        style: TextStyle(
+                                            color: CustomColor.backgroundColor,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    (!isSynchronized && isConnected)
+                        ? ElevatedButton(
+                            style: ButtonStyle(
+                              shape: MaterialStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                ),
+                              ),
                             ),
                             child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  'ثبت ورود و خروج جدید',
-                                  style: TextStyle(
-                                      color: CustomColor.backgroundColor,
-                                      fontWeight: FontWeight.bold),
-                                ),
+                                Text("به روز رسانی"),
+                                SizedBox(width: 8),
+                                // Add some spacing between the icon and text
+                                Icon(Icons.update),
+                                // Add the desired icon
                               ],
                             ),
-                          ),
-                        )),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              (!isSynchronized && isConnected)
-                  ? ElevatedButton(
-                style: ButtonStyle(
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text("به روز رسانی"),
-                          SizedBox(width: 8),
-                          // Add some spacing between the icon and text
-                          Icon(Icons.update),
-                          // Add the desired icon
-                        ],
-                      ),
-                      onPressed: () {
-                        SendListToServer();
-                      },
-                    )
-                  : Row(),
-              (isLoading)
-                  ? Expanded(
-                      child: Center(
-                      child: CircularProgressIndicator(),
-                    ))
-                  : (dataList.length == 0)
-                      ? Expanded(
-                          child: Center(
-                          child: Text(
-                            'ورود یا خروج یافت نشد!',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ))
-                      : Expanded(
-                          child: SingleChildScrollView(
-                              child: Padding(
-                                  padding: EdgeInsets.only(bottom: 15),
-                                  child: ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: dataList.length,
-                                    itemBuilder: (context, index) {
-                                      var item = dataList[index];
-                                      return Card(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(5),
-                                        ),
-                                        elevation: 4.0,
-                                        color: CustomColor.backgroundColor,
-                                        margin: EdgeInsets.only(
-                                            left: 16, right: 16, top: 12),
-                                        child: ExpansionTile(
-                                          backgroundColor:
-                                              CustomColor.backgroundColor,
-                                          leading: Icon(
-                                              Icons.keyboard_arrow_down,
-                                              color: CustomColor
-                                                  .drawerBackgroundColor),
-                                          shape: LinearBorder.none,
-                                          title: RichText(
-                                            text: TextSpan(children: <TextSpan>[
-                                              TextSpan(
-                                                text: 'تاریخ :',
-                                                style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                    fontSize: 12.0,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        CustomColor.textColor),
+                            onPressed: () {
+                              SendListToServer();
+                            },
+                          )
+                        : Row(),
+                    (isLoading)
+                        ? Expanded(
+                            child: Center(
+                            child: CircularProgressIndicator(),
+                          ))
+                        : (dataList.length == 0)
+                            ? Expanded(
+                                child: Center(
+                                child: Text(
+                                  'ورود یا خروج یافت نشد!',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ))
+                            : Expanded(
+                                child: SingleChildScrollView(
+                                    child: Padding(
+                                        padding: EdgeInsets.only(bottom: 15),
+                                        child: ListView.builder(
+                                          shrinkWrap: true,
+                                          physics:
+                                              NeverScrollableScrollPhysics(),
+                                          itemCount: dataList.length,
+                                          itemBuilder: (context, index) {
+                                            var item = dataList[index];
+                                            return Card(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
                                               ),
-                                              TextSpan(
-                                                text: ' ${item.date}  ',
-                                                style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                    fontSize: 12.0,
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                    color:
-                                                        CustomColor.textColor),
-                                              ),
-                                            ]),
-                                          ),
-                                          subtitle: RichText(
-                                            text: TextSpan(children: <TextSpan>[
-                                              TextSpan(
-                                                text: 'نوع :',
-                                                style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                    fontSize: 12.0,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        CustomColor.textColor),
-                                              ),
-                                              TextSpan(
-                                                text: (item.type == 'systemic')
-                                                    ? 'سیستمی'
-                                                    : 'دستی',
-                                                style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                    fontSize: 12.0,
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                    color:
-                                                        CustomColor.textColor),
-                                              ),
-                                            ]),
-                                          ),
-                                          trailing: InkWell(
-                                            child: (item.status == 'leaving' ||
-                                                    item.status == 'mission')
-                                                ? Container(
-                                                    //margin: EdgeInsets.all(10),
-                                                    padding:
-                                                        EdgeInsets.all(8.0),
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          CustomColor.cardColor,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                    ),
+                                              elevation: 4.0,
+                                              color:
+                                                  CustomColor.backgroundColor,
+                                              margin: EdgeInsets.only(
+                                                  left: 16, right: 16, top: 12),
+                                              child: ExpansionTile(
+                                                backgroundColor:
+                                                    CustomColor.backgroundColor,
+                                                leading: Icon(
+                                                    Icons.keyboard_arrow_down,
+                                                    color: CustomColor
+                                                        .drawerBackgroundColor),
+                                                shape: LinearBorder.none,
+                                                title: RichText(
+                                                  text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text: 'تاریخ :',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              ' ${item.date}  ',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ]),
+                                                ),
+                                                subtitle: RichText(
+                                                  text: TextSpan(
+                                                      children: <TextSpan>[
+                                                        TextSpan(
+                                                          text: 'نوع :',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text: (item.type ==
+                                                                  'systemic')
+                                                              ? 'سیستمی'
+                                                              : 'دستی',
+                                                          style: TextStyle(
+                                                              fontFamily: 'irs',
+                                                              fontSize: 12.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ]),
+                                                ),
+                                                trailing: InkWell(
+                                                  child:
+                                                      (item.status ==
+                                                                  'leaving' ||
+                                                              item.status ==
+                                                                  'mission')
+                                                          ? Container(
+                                                              //margin: EdgeInsets.all(10),
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .all(8.0),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                color: CustomColor
+                                                                    .cardColor,
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10.0),
+                                                              ),
 
-                                                    child: (item.status ==
-                                                            'leaving')
-                                                        ? Text(
-                                                            'مرخصی',
-                                                          )
-                                                        : Text(
-                                                            'ماموریت',
-                                                          ),
-                                                  )
-                                                : (item.status == 'arrival')
-                                                    ? Container(
-                                                        padding:
-                                                            EdgeInsets.all(8.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: CustomColor
-                                                              .successColor,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      10.0),
-                                                        ),
-                                                        child: Text(
-                                                          'ورود',
-                                                        ),
-                                                      )
-                                                    : Container(
-                                                        padding:
-                                                            EdgeInsets.all(8.0),
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          color: CustomColor
-                                                              .dangerColor,
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      10.0),
-                                                        ),
-                                                        child: Text(
-                                                          'خروج',
-                                                        ),
-                                                      ),
-                                          ),
-                                          children: <Widget>[
-                                            //Padding(
-                                            //padding: const EdgeInsets.all(16.0),
-                                            Container(
-                                              color: CustomColor.cardColor,
-                                              padding: EdgeInsets.all(16.0),
-                                              child: Column(
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      RichText(
-                                                          text: TextSpan(
-                                                              children: <TextSpan>[
-                                                            TextSpan(
-                                                              text: 'زمان :',
-                                                              style: TextStyle(
-                                                                  fontFamily:
-                                                                      'irs',
-                                                                  fontSize:
-                                                                      12.0,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: CustomColor
-                                                                      .textColor),
-                                                            ),
-                                                            TextSpan(
-                                                              text:
-                                                                  ' ${item.time}  ',
-                                                              style: TextStyle(
-                                                                  fontFamily:
-                                                                      'irs',
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .normal,
-                                                                  fontSize:
-                                                                      12.0,
-                                                                  color: CustomColor
-                                                                      .textColor),
-                                                            ),
-                                                          ])),
-                                                      Spacer()
-                                                    ],
-                                                  ),
-                                                  if (item.description != null)
-                                                    Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .start,
+                                                              child: (item.status ==
+                                                                      'leaving')
+                                                                  ? Text(
+                                                                      'مرخصی',
+                                                                    )
+                                                                  : Text(
+                                                                      'ماموریت',
+                                                                    ),
+                                                            )
+                                                          : (item.status ==
+                                                                  'arrival')
+                                                              ? Container(
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              8.0),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: CustomColor
+                                                                        .successColor,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10.0),
+                                                                  ),
+                                                                  child: Text(
+                                                                    'ورود',
+                                                                  ),
+                                                                )
+                                                              : Container(
+                                                                  padding:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              8.0),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    color: CustomColor
+                                                                        .dangerColor,
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            10.0),
+                                                                  ),
+                                                                  child: Text(
+                                                                    'خروج',
+                                                                  ),
+                                                                ),
+                                                ),
+                                                children: <Widget>[
+                                                  //Padding(
+                                                  //padding: const EdgeInsets.all(16.0),
+                                                  Container(
+                                                    color:
+                                                        CustomColor.cardColor,
+                                                    padding:
+                                                        EdgeInsets.all(16.0),
+                                                    child: Column(
                                                       children: [
-                                                        Expanded(
-                                                            child: RichText(
+                                                        Row(
+                                                          children: [
+                                                            RichText(
                                                                 text: TextSpan(
                                                                     children: <TextSpan>[
-                                                              TextSpan(
-                                                                text:
-                                                                    'توضیحات :',
-                                                                style: TextStyle(
-                                                                    fontFamily:
-                                                                        'irs',
-                                                                    fontSize:
-                                                                        12.0,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: CustomColor
-                                                                        .textColor),
-                                                              ),
-                                                              TextSpan(
-                                                                text:
-                                                                    ' ${item.description}  ',
-                                                                style: TextStyle(
-                                                                    fontFamily:
-                                                                        'irs',
-                                                                    fontSize:
-                                                                        12.0,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .normal,
-                                                                    color: CustomColor
-                                                                        .textColor),
-                                                              ),
-                                                            ]))),
+                                                                  TextSpan(
+                                                                    text:
+                                                                        'زمان :',
+                                                                    style: TextStyle(
+                                                                        fontFamily:
+                                                                            'irs',
+                                                                        fontSize:
+                                                                            12.0,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                        color: CustomColor
+                                                                            .textColor),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text:
+                                                                        ' ${item.time}  ',
+                                                                    style: TextStyle(
+                                                                        fontFamily:
+                                                                            'irs',
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .normal,
+                                                                        fontSize:
+                                                                            12.0,
+                                                                        color: CustomColor
+                                                                            .textColor),
+                                                                  ),
+                                                                ])),
+                                                            Spacer()
+                                                          ],
+                                                        ),
+                                                        if (item.description !=
+                                                            null)
+                                                          Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Expanded(
+                                                                  child: RichText(
+                                                                      text: TextSpan(children: <TextSpan>[
+                                                                TextSpan(
+                                                                  text:
+                                                                      'توضیحات :',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'irs',
+                                                                      fontSize:
+                                                                          12.0,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      color: CustomColor
+                                                                          .textColor),
+                                                                ),
+                                                                TextSpan(
+                                                                  text:
+                                                                      ' ${item.description}  ',
+                                                                  style: TextStyle(
+                                                                      fontFamily:
+                                                                          'irs',
+                                                                      fontSize:
+                                                                          12.0,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .normal,
+                                                                      color: CustomColor
+                                                                          .textColor),
+                                                                ),
+                                                              ]))),
+                                                            ],
+                                                          ),
                                                       ],
                                                     ),
+                                                  )
+                                                  //),
                                                 ],
                                               ),
-                                            )
-                                            //),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  )))),
-            ])));
+                                            );
+                                          },
+                                        )))),
+                  ])));
   }
 
   Future<void> fetchData(BuildContext context) async {
@@ -595,7 +620,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> initBox() async {
     rollcalBox = await Hive.openBox('rollcalBox');
-    results = await rollcalBox?.values.where((data) => data.synced == false).toList();
+    results =
+        await rollcalBox?.values.where((data) => data.synced == false).toList();
   }
 
   Future<void> connectionChecker() async {
@@ -610,12 +636,14 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
+
   Future<void> sync() async {
     setState(() {
-      isSyncing=true;
+      isSyncing = true;
     });
     rollcalBox = await Hive.openBox('rollcalBox');
-    results = await rollcalBox?.values.where((data) => data.synced == false).toList();
+    results =
+        await rollcalBox?.values.where((data) => data.synced == false).toList();
     ActionService actionService = ActionService('https://afkhambpms.ir/api1');
 
     if (results!.isNotEmpty) {
@@ -630,7 +658,6 @@ class _MyHomePageState extends State<MyHomePage> {
           );
 
           if (actionResponse['status'] == 'successful') {
-
             Rollcal rollcal = Rollcal(
               id: result.id,
               status: result.status,
@@ -646,16 +673,18 @@ class _MyHomePageState extends State<MyHomePage> {
             print('1');
           }
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
+          CustomNotification.show(
+              context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
         }
       }
     }
 
     setState(() {
-      isSyncing=false;
+      isSyncing = false;
     });
     print(isSyncing);
   }
+
   Widget _buildDateTextField() {
     return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
       Container(
@@ -969,8 +998,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 onPressed: isLoading ? null : submitAction,
                                 child: isLoading
                                     ? CircularProgressIndicator()
-                                    :Text('ثبت',
-                                    style: TextStyle(color: Colors.white)),
+                                    : Text('ثبت',
+                                        style: TextStyle(color: Colors.white)),
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
@@ -1022,7 +1051,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     if (isConnected) {
-      if(!isSyncing){
+      if (!isSyncing) {
         try {
           final rollcalBox = Hive.box<Rollcal>('rollcalBox');
           int id = rollcalBox.length;
@@ -1035,9 +1064,8 @@ class _MyHomePageState extends State<MyHomePage> {
           );
 
           if (actionResponse['status'] == 'successful') {
-
             Rollcal rollcal = Rollcal(
-              id: id+1,
+              id: id + 1,
               status: actionType,
               date: dateController.text.trim(),
               time: StandardNumberCreator.convert(timeController.text.trim()),
@@ -1046,13 +1074,14 @@ class _MyHomePageState extends State<MyHomePage> {
               description: descriptionController.text.trim(),
             );
             rollcalBox.add(rollcal);
-            CustomNotification.show(context, 'موفقیت آمیز',
-                'درخواست با موفقیت ثبت شد.', '/loc');
+            CustomNotification.show(
+                context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/loc');
           }
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
+          CustomNotification.show(
+              context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
         }
-      }else{
+      } else {
         final rollcalBox = Hive.box<Rollcal>('rollcalBox');
         int id = rollcalBox.length;
         Rollcal rollcal = Rollcal(
@@ -1065,8 +1094,8 @@ class _MyHomePageState extends State<MyHomePage> {
             description: '');
         rollcalBox.add(rollcal);
         print(rollcalBox.length);
-        CustomNotification.show(context, 'موفقیت آمیز',
-            'درخواست با موفقیت ثبت شد.', '/loc');
+        CustomNotification.show(
+            context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/loc');
       }
     } else {
       Rollcal rollcal = Rollcal(
@@ -1079,8 +1108,8 @@ class _MyHomePageState extends State<MyHomePage> {
           description: descriptionController.text.trim());
 
       box.add(rollcal);
-      CustomNotification.show(context, 'موفقیت آمیز',
-          'درخواست با موفقیت ثبت شد.', '/loc');
+      CustomNotification.show(
+          context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/loc');
     }
     setState(() {
       isLoading = false;
