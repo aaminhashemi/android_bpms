@@ -1,8 +1,13 @@
 import 'dart:convert';
+import 'dart:ui';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_linear_datepicker/flutter_datepicker.dart';
 import 'package:shamsi_date/shamsi_date.dart';
+import '../models/mission.dart';
+import '../services/action_service.dart';
 import '../services/save_mission_request_service.dart';
 import '../utils/custom_notification.dart';
 import '../utils/standard_number_creator.dart';
@@ -21,9 +26,12 @@ class _MissionRequestState extends State<MissionRequest> {
   @override
   void initState() {
     super.initState();
+    initBox();
     setInitialDate();
   }
-
+  Future<void> initBox()async{
+    missionBox= await Hive.openBox('missionBox');
+  }
   DateTime convertTimeOfDayToDateTime(TimeOfDay timeOfDay) {
     final now = DateTime.now();
     return DateTime(
@@ -42,7 +50,7 @@ class _MissionRequestState extends State<MissionRequest> {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
   TextEditingController reasonController = TextEditingController();
-
+  Box<Mission>? missionBox;
   String leaveType = Consts.selectMissionType;
   List<String> leaveTypes = [
     Consts.selectMissionType,
@@ -155,7 +163,6 @@ class _MissionRequestState extends State<MissionRequest> {
               LinearDatePicker(
                 startDate: "1396/12/12",
                 endDate: endDateController.text,
-                initialDate: "1397/05/05",
                 addLeadingZero: true,
                 dateChangeListener: (String selectedDate) {
                   selected = selectedDate;
@@ -222,7 +229,6 @@ class _MissionRequestState extends State<MissionRequest> {
               LinearDatePicker(
                 startDate: startDateController.text,
                 //endDate: "1398/01/14",
-                initialDate: "1397/05/05",
                 addLeadingZero: true,
                 dateChangeListener: (String selectedDate) {
                   selected = selectedDate;
@@ -499,8 +505,123 @@ class _MissionRequestState extends State<MissionRequest> {
       default:
         type = 'choose_type';
     }
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      if(type=='hourly'){
+      final missionBox = Hive.box<Mission>('missionBox');
+      if (dateController.text
+          .trim()
+          .length > 0 && leaveType
+          .trim()
+          .length > 1 && startTimeController.text
+          .trim()
+          .length > 0 && endTimeController.text
+          .trim()
+          .length > 0 && reasonController.text
+          .trim()
+          .length > 0 && originController.text
+          .trim()
+          .length > 0 && destinationController.text
+          .trim()
+          .length > 0) {
+        try {
+          Mission mission = Mission(
+              jalali_request_date: dateController.text.trim(),
+              type: leaveType,
+              level: 'درخواست',
+              status: 'recorded',
+              start: StandardNumberCreator.convert(
+                  startTimeController.text.trim()),
+              end: StandardNumberCreator.convert(endTimeController.text.trim()),
+              reason: reasonController.text.trim(),
+              origin: originController.text.trim(),
+              destination: destinationController.text.trim(),
+              description: null,
+              synced: false);
+          missionBox.add(mission);
+          print(missionBox.length);
+          setState(() {
+            isLoading = false;
+          });
+          CustomNotification.show(context, 'موفقیت آمیز',
+              'درخواست ماموریت با موفقیت ثبت شد.', '/mission-request');
+        } catch (e) {
+          setState(() {
+            isLoading = false;
+          });
+          CustomNotification.show(context, 'خطا',
+              'در ثبت درخواست مشکلی وجود دارد.', '/');
+        }
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'خطا',
+            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+      }
+    }else if(type=='daily'){
+        final missionBox = Hive.box<Mission>('missionBox');
+        if (dateController.text
+            .trim()
+            .length > 0 && leaveType
+            .trim()
+            .length > 1 && startDateController.text
+            .trim()
+            .length > 0 && endDateController.text
+            .trim()
+            .length > 0 && reasonController.text
+            .trim()
+            .length > 0 && originController.text
+            .trim()
+            .length > 0 && destinationController.text
+            .trim()
+            .length > 0) {
+          try {
+            Mission mission = Mission(
+                jalali_request_date: dateController.text.trim(),
+                type: leaveType,
+                level: 'درخواست',
+                status: 'recorded',
+                start: startDateController.text.trim(),
+                end: endDateController.text.trim(),
+                reason: reasonController.text.trim(),
+                origin: originController.text.trim(),
+                destination: destinationController.text.trim(),
+                description: null,
+                synced: false);
+            missionBox.add(mission);
+            print(missionBox.length);
+            setState(() {
+              isLoading = false;
+            });
+            CustomNotification.show(context, 'موفقیت آمیز',
+                'درخواست ماموریت با موفقیت ثبت شد.', '/mission-request');
+          } catch (e) {
+            setState(() {
+              isLoading = false;
+            });
+            CustomNotification.show(context, 'خطا',
+                'در ثبت درخواست مشکلی وجود دارد.', '/');
+          }
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          CustomNotification.show(context, 'خطا',
+              'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+        }
+      }else{
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'خطا',
+            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+      }
+      }
+    else{
     SaveMissionRequestService saveMissionRequestService =
-        SaveMissionRequestService(apiUrl);
+    SaveMissionRequestService(apiUrl);
     try {
       final response = await saveMissionRequestService.saveMissionRequest(
           dateController.text.trim(),
@@ -514,6 +635,22 @@ class _MissionRequestState extends State<MissionRequest> {
           type);
 
       if (response['status'] == 'successful') {
+        final missionBox = Hive.box<Mission>('missionBox');
+
+        Mission mission=Mission(
+            jalali_request_date: dateController.text.trim(),
+            type: type,
+            level: response['mission']['level'],
+            status: 'recorded',
+            start: StandardNumberCreator.convert(startTimeController.text.trim()),
+            end: StandardNumberCreator.convert(endTimeController.text.trim()),
+            reason: reasonController.text.trim(),
+            origin: originController.text.trim(),
+            destination: destinationController.text.trim(),
+            description: null,
+            synced: true);
+        missionBox.add(mission);
+        print(response['mission']['level']);
         CustomNotification.show(context, 'موفقیت آمیز',
             'درخواست ماموریت با موفقیت ثبت شد.', '/mission-request');
       } else if (response['status'] == 'imperfect_data') {
@@ -531,6 +668,7 @@ class _MissionRequestState extends State<MissionRequest> {
         isLoading = false;
       });
     }
+  }
   }
 
   @override
@@ -736,11 +874,121 @@ class _AllMissionsListState extends State<AllMissions> {
   bool isLoading = true;
   late List<bool> _isExpandedList =
       List.generate(allMissionsList.length, (index) => false);
+  Box<Mission>? missionBox;
+  List<Mission>? results;
+  bool isSynchronized = true;
+  bool isSyncing = false;
+  bool isConnected = false;
+  double syncPercent = 0;
 
   @override
   void initState() {
     super.initState();
+    initBox();
     fetchData(context);
+    connectionChecker();
+  }
+  void SendListToServer() async {
+    setState(() {
+      isSyncing = true;
+    });
+    ActionService actionService = ActionService('https://afkhambpms.ir/api1');
+    const apiUrl = 'https://afkhambpms.ir/api1/personnels/save_mission_request';
+    SaveMissionRequestService saveMissionRequestService = SaveMissionRequestService(apiUrl);
+    final List<Mission>? results =
+    missionBox?.values.where((data) => data.synced == false).toList();
+    double percent = 0;
+    if (results!.isNotEmpty) {
+      percent = 1 / (results!.length);
+    }
+    if (results.isNotEmpty) {
+      for (var result in results) {
+        print(result.key);
+        print(missionBox!.get(result.key));
+        print('result.type');
+        try {
+          var type = '';
+          switch (result.type) {
+            case 'روزانه':
+              type = 'daily';
+              break;
+            case 'ساعتی':
+              type = 'hourly';
+              break;
+            default:
+              type = 'choose_type';
+          }
+          print(type);
+          print(result.origin);
+          print(result.destination);
+          final response = await saveMissionRequestService.saveMissionRequest(
+            result.jalali_request_date,
+            result.start,
+            result.end,
+            result.start,
+            result.end,
+            result.origin,
+            result.destination,
+            result.reason,
+            type,
+          );
+          print(response['status']);
+          print("response['status']");
+          if (response['status'] == 'successful') {
+            
+            try{
+              Mission mission = Mission(
+                jalali_request_date: result.jalali_request_date,
+                type:result.type,
+                level:response['mission']['level'],
+                status:response['mission']['status'],
+                start:result.start,
+                end:result.end,
+                origin:result.origin,
+                destination:result.destination,
+                reason:result.reason,
+                description:null,
+                synced:true,
+              );
+              missionBox?.put(result.key, mission);
+            }catch(e){
+              print('err');
+              print(e.toString());
+            }
+            setState(() {
+              syncPercent = syncPercent + percent;
+            });
+          }
+
+        } catch (e) {
+          CustomNotification.show(context, 'ناموفق', e.toString(), '');
+        }finally{
+          allMissionsList=[];
+          print(missionBox);
+          for (var res in missionBox!.values.toList()) {
+            var mission = {
+              'jalali_request_date': res.jalali_request_date,
+              'type':res.type,
+              'level':res.level,
+              'status':res.status,
+              'start':res.start,
+              'end':res.end,
+              'origin':res.origin,
+              'destination':res.end,
+              'reason':res.reason,
+              'description':res.description,
+            };
+            allMissionsList.add(mission);
+            print(res.synced);
+          }
+        }
+      }
+      await Future.delayed(Duration(seconds: 1));
+      setState(() {
+        isSyncing = false;
+        isSynchronized = true;
+      });
+    }
   }
 
   Widget build(BuildContext context) {
@@ -756,7 +1004,57 @@ class _AllMissionsListState extends State<AllMissions> {
                 style: TextStyle(color: CustomColor.textColor)),
           ),
           drawer: AppDrawer(),
-          body: Column(
+          body: (isSyncing)?
+          Center(
+            child:  Stack(
+              children: [
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.greenAccent,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.white,
+                                blurRadius: 5,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                ' در حال به روز رسانی %${(syncPercent * 100).toInt()}',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              LinearProgressIndicator(
+                                value: syncPercent,
+                                backgroundColor: Colors.grey[300],
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+              :Column(
             children: [
               Container(
                 color: CustomColor.backgroundColor,
@@ -805,6 +1103,30 @@ class _AllMissionsListState extends State<AllMissions> {
                   ),
                 ),
               ),
+              (!isSynchronized && isConnected)
+                  ? ElevatedButton(
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("به روز رسانی"),
+                    SizedBox(width: 8),
+                    // Add some spacing between the icon and text
+                    Icon(Icons.update),
+                    // Add the desired icon
+                  ],
+                ),
+                onPressed: () {
+                  SendListToServer();
+                },
+              )
+                  : Row(),
               (isLoading)
                   ? Expanded(
                       child: Center(
@@ -1029,6 +1351,77 @@ class _AllMissionsListState extends State<AllMissions> {
                                                   ],
                                                 ),
                                                 Row(
+                                                  children: [
+                                                    RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text:
+                                                                  'مبدا  :',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                            TextSpan(
+                                                              text:
+                                                                  ' ${mission['origin']}  ',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .normal,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                          ]),
+                                                    ),
+                                                    Spacer(),
+                                                    RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text:
+                                                                  'مقصد  :',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                            TextSpan(
+                                                              text:
+                                                                  ' ${mission['destination']}  ',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .normal,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                          ]),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.start,
                                                   children: [
@@ -1125,35 +1518,148 @@ class _AllMissionsListState extends State<AllMissions> {
         ));
   }
 
-  Future<void> fetchData(BuildContext context) async {
-    final AuthService authService = AuthService('https://afkhambpms.ir/api1');
-    final token = await authService.getToken();
-    setState(() {
-      isLoading = true;
-    });
-    try{
-    final response = await http.get(
-        Uri.parse('https://afkhambpms.ir/api1/personnels/get-mission'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        });
-
-    if (response.statusCode == 200) {
+  Future<void> connectionChecker() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
       setState(() {
-        allMissionsList = json.decode(response.body);
-        isLoading = false;
+        isConnected = false;
       });
     } else {
       setState(() {
+        isConnected = true;
+      });
+    }
+    print(isConnected);
+  }
+
+  Future<void> initBox() async {
+    missionBox = await Hive.openBox('missionBox');
+    final List<Mission>? results =
+        missionBox?.values.where((data) => data.synced == false).toList();
+    if (results!.length > 0) {
+      setState(() {
+        isSynchronized = false;
+      });
+    }
+    setState(() {});
+  }
+
+  Future<void> fetchData(BuildContext context) async {
+    final AuthService authService = AuthService('https://afkhambpms.ir/api1');
+    final token = await authService.getToken();
+    print(token);
+    setState(() {
+      isLoading = true;
+    });
+    missionBox = await Hive.openBox('missionBox');
+    var connectivityResult = await Connectivity().checkConnectivity();
+    final box = Hive.box<Mission>('missionBox');
+    if (connectivityResult != ConnectivityResult.none) {
+      results = await missionBox?.values
+          .where((data) => data.synced == false)
+          .toList();
+      if (results?.length == 0) {
+        await box.clear();
+        try {
+          final response = await http.get(
+              Uri.parse('https://afkhambpms.ir/api1/personnels/get-mission'),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+              });
+
+          if (response.statusCode == 200) {
+            var temp = json.decode(response.body);
+            var check = await box.values.toList();
+            if (check.length == 0) {
+              for (var leving in temp) {
+                print(leving);
+
+                Mission mission = Mission(
+                  jalali_request_date: leving['jalali_request_date'],
+                  type: leving['type'],
+                  level: leving['level'],
+                  status: leving['status'],
+                  start: leving['start'],
+                  end: leving['end'],
+                  reason: leving['reason'],
+                  origin: leving['origin'],
+                  destination: leving['destination'],
+                  description: leving['description'],
+                  synced: true,
+                );
+                box.add(mission);
+                print('payslipBox.length');
+                print(box.length);
+              }
+            }
+            setState(() {
+              allMissionsList = json.decode(response.body);
+              isLoading = false;
+            });
+
+          } else {
+            setState(() {
+              isLoading = false;
+            });
+            throw Exception(Exception_consts.dataFetchError);
+          }
+        } catch (e) {
+          CustomNotification.show(
+              context,
+              'ناموفق',
+              'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
+              'mission-request');
+          setState(() {
+            isLoading = false;
+          });
+        }
+      } else {
+        print(box);
+        for (var res in box.values.toList()
+          ..sort((a, b) => b.key.compareTo(a.key))) {
+          var mission = {
+            'jalali_request_date': res.jalali_request_date,
+            'type': res.type,
+            'level': res.level,
+            'status': res.status,
+            'start': res.start,
+            'end': res.end,
+            'origin': res.origin,
+            'destination': res.destination,
+            'reason': res.reason,
+            'description': res.description,
+          };
+          allMissionsList.add(mission);
+          print(res.status);
+        }
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      print(box);
+      for (var res in box.values.toList()
+        ..sort((a, b) => b.key.compareTo(a.key))) {
+        var mission = {
+          'jalali_request_date': res.jalali_request_date,
+          'type': res.type,
+          'level': res.level,
+          'status': res.status,
+          'start': res.start,
+          'end': res.end,
+          'origin': res.origin,
+          'destination': res.destination,
+          'reason': res.reason,
+          'description': res.description,
+        };
+        allMissionsList.add(mission);
+        print(res.status);
+      }
+      setState(() {
         isLoading = false;
       });
-      throw Exception(Exception_consts.dataFetchError);
-    }
-    }catch(e){
-      CustomNotification.show(context, 'ناموفق',
-          'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'mission-request');
     }
   }
 }

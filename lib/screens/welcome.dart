@@ -15,6 +15,8 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeState extends State<WelcomeScreen> {
   String version = '';
+  bool readyToUpdate = false;
+  bool isLogined = false;
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
   final UpdateService updateService =
       UpdateService('https://afkhambpms.ir/api1/update');
@@ -22,8 +24,8 @@ class _WelcomeState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    checkAccessToken();
     checkForAvailableUpdate();
+    checkAccessToken();
   }
 
   Future<void> _launchURL(String url) async {
@@ -34,6 +36,12 @@ class _WelcomeState extends State<WelcomeScreen> {
     }
   }
 
+  void startPageDetector() {
+    (isLogined)
+        ? Navigator.pushReplacementNamed(context, '/main')
+        : Navigator.pushReplacementNamed(context, '/login');
+  }
+
   void checkAccessToken() async {
     final accessToken = await authService.getToken();
     var connectivityResult = await Connectivity().checkConnectivity();
@@ -41,13 +49,24 @@ class _WelcomeState extends State<WelcomeScreen> {
       if (accessToken != null) {
         final validAccessToken =
             await authService.isAccessTokenValid(accessToken);
+        (validAccessToken)
+            ? setState(() {
+                isLogined = true;
+              })
+            : setState(() {
+                isLogined = false;
+              });
         await Future.delayed(Duration(seconds: 3));
         (validAccessToken)
-            ? Navigator.pushReplacementNamed(context, '/main')
+            ? (!readyToUpdate)
+                ? Navigator.pushReplacementNamed(context, '/main')
+                : null
             : Navigator.pushReplacementNamed(context, '/login');
       } else {
         await Future.delayed(Duration(seconds: 3));
-        Navigator.pushReplacementNamed(context, '/login');
+        (!readyToUpdate)
+            ? Navigator.pushReplacementNamed(context, '/login')
+            : null;
       }
     } else {
       if (accessToken != null) {
@@ -68,36 +87,73 @@ class _WelcomeState extends State<WelcomeScreen> {
     try {
       final response = await updateService.check();
       if (response['status'] == 'successful') {
+        setState(() {
+          readyToUpdate = true;
+        });
         showDialog(
           context: context,
+          barrierDismissible: false,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text(Consts.update,
-                  style:
-                      TextStyle(fontSize: 13, fontWeight: FontWeight.normal)),
-              content: Text(Consts.updateIsAvailable,
-                  style:
-                      TextStyle(fontSize: 12, fontWeight: FontWeight.normal)),
+              title: const Center(
+                  child: Text(Consts.update,
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.bold))),
+              content: (response['description'].toString().length > 0)
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(Consts.updateIsAvailable),
+                        SizedBox(height: 10),
+                        // Spacer
+                        Text('لیست تغییرات:'),
+                        //
+                        SizedBox(height: 5),
+                        // Spacer// Displaying the URL for demonstration
+                        Text(response['description']),
+                        // Displaying the URL for demonstration
+                      ],
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(Consts.updateIsAvailable),
+                      ],
+                    ),
               actions: <Widget>[
                 TextButton(
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.green),
+                    shape: MaterialStateProperty.all<OutlinedBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            7.0), // Adjust the radius as needed
+                      ),
+                    ),
                   ),
                   onPressed: () {
                     _launchURL(response['url']);
                   },
-                  child: Text(Consts.update),
+                  child: Text(Consts.update,style: TextStyle(color: Colors.white),),
                 ),
                 TextButton(
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all<Color>(Colors.red),
+                    shape: MaterialStateProperty.all<OutlinedBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                            7.0), // Adjust the radius as needed
+                      ),
+                    ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    startPageDetector();
                   },
-                  child: Text(Consts.cancel),
+                  child: Text(Consts.cancel,style: TextStyle(color: Colors.white)),
                 ),
               ],
             );

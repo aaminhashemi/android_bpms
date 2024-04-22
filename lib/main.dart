@@ -1,5 +1,7 @@
 import 'package:afkham/models/assistance.dart';
 import 'package:afkham/models/leaving.dart';
+import 'package:afkham/models/loan.dart';
+import 'package:afkham/models/mission.dart';
 import 'package:afkham/models/payslip.dart';
 import 'package:afkham/models/rollcal.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -28,6 +30,8 @@ Future<void> main() async {
   Hive.registerAdapter(PayslipAdapter());
   Hive.registerAdapter(AssistanceAdapter());
   Hive.registerAdapter(LeavingAdapter());
+  Hive.registerAdapter(MissionAdapter());
+  Hive.registerAdapter(LoanAdapter());
   runApp(const MyApp());
 }
 

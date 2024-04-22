@@ -102,7 +102,9 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
       final assistanceBox = Hive.box<Assistance>('assistanceBox');
-      List<String> parts = dateController.text.trim().split('/');
+      if(dateController.text.trim().length>0 && valueController.text.trim().length>1 ){
+        try{
+        List<String> parts = dateController.text.trim().split('/');
       String monthName = '';
       switch (parts[1]) {
         case '01':
@@ -156,7 +158,24 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
       setState(() {
         isLoading = false;
       });
-    } else {
+        CustomNotification.show(context, 'موفقیت آمیز',
+            'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
+    }catch(e){
+          setState(() {
+            isLoading = false;
+          });
+          CustomNotification.show(context, 'خطا',
+              'در ثبت درخواست مشکلی وجود دارد.', '/');
+        }
+        }else{
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'خطا',
+            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+      }
+    }
+    else {
       try {
         final response = await saveAssistanceService.saveAssistance(
           dateController.text.trim(),
@@ -905,7 +924,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
       //final x=payslipBox?.values.toList();
       //print(payslipBox?.length);
 
-      for (var res in box.values.toList()) {
+      for (var res in box.values.toList()..sort((a, b) => b.key.compareTo(a.key))) {
         var assistance = {
           'level': res.level,
           'price': res.price,

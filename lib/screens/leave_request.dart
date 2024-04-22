@@ -734,7 +734,8 @@ class _AllLeaveListState extends State<AllLeaves> {
         isLoading = false;
       });
     }
-    }else{
+    }
+    else{
       print(box);
       for (var res in box.values.toList()..sort((a, b) => b.key.compareTo(a.key))) {
         var leaving = {
@@ -1209,6 +1210,7 @@ class _LeaveRequestState extends State<LeaveRequest> {
         period = 'choose_type';
     }
     var type = '';
+    print(leaveType);
     switch (leaveType) {
       case 'استحقاقی':
         type = 'deserved';
@@ -1220,29 +1222,104 @@ class _LeaveRequestState extends State<LeaveRequest> {
         type = 'without_salary';
         break;
       default:
-        type = 'choose_type';
+        type = '';
     }
+    List<String> validTypes = ['deserved', 'sickness', 'without_salary'];
+
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
-      final leavingBox = Hive.box<Leaving>('leavingBox');
-
-      Leaving leaving=Leaving(
-          jalali_request_date: dateController.text.trim(),
-          period: leavePeriod,
-          status: 'recorded',
-          level: 'درخواست',
-          type: leaveType,
-          start: StandardNumberCreator.convert(startTimeController.text.trim()),
-          end: StandardNumberCreator.convert(endTimeController.text.trim()),
-          reason: reasonController.text.trim(),
-          description: null,
-          synced: false);
-      leavingBox.add(leaving);
-      print(leavingBox.length);
-      setState(() {
-        isLoading = false;
-      });
-    }else{
+      if(period=='hourly'){
+        final leavingBox = Hive.box<Leaving>('leavingBox');
+      if (dateController.text.trim().length > 0 &&
+          leaveType.trim().length > 1 &&
+          validTypes.contains(type) &&
+          startTimeController.text.trim().length > 0 &&
+          endTimeController.text.trim().length > 0 &&
+          reasonController.text.trim().length > 0 &&
+          leavePeriod.trim().length > 0 ) {
+      try {
+        Leaving leaving = Leaving(
+            jalali_request_date: dateController.text.trim(),
+            period: leavePeriod,
+            status: 'recorded',
+            level: 'درخواست',
+            type: leaveType,
+            start: StandardNumberCreator.convert(
+                startTimeController.text.trim()),
+            end: StandardNumberCreator.convert(endTimeController.text.trim()),
+            reason: reasonController.text.trim(),
+            description: null,
+            synced: false);
+        leavingBox.add(leaving);
+        print(leavingBox.length);
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'موفقیت آمیز',
+            'درخواست مرخصی با موفقیت ثبت شد.', '/leave-request');
+      } catch (e) {
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'خطا',
+            'در ثبت درخواست مشکلی وجود دارد.', '/');
+      }
+    }else {
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'خطا',
+            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+      }
+    }else if(period=='daily'){
+        final leavingBox = Hive.box<Leaving>('leavingBox');
+        if (dateController.text.trim().length > 0 &&
+            leaveType.trim().length > 1 &&
+            validTypes.contains(type) &&
+            startDateController.text.trim().length > 0 &&
+            endDateController.text.trim().length > 0 &&
+            reasonController.text.trim().length > 0 &&
+            leavePeriod.trim().length > 0 ) {
+          try {
+            Leaving leaving = Leaving(
+                jalali_request_date: dateController.text.trim(),
+                period: leavePeriod,
+                status: 'recorded',
+                level: 'درخواست',
+                type: leaveType,
+                start: startDateController.text.trim(),
+                end: endDateController.text.trim(),
+                reason: reasonController.text.trim(),
+                description: null,
+                synced: false);
+            leavingBox.add(leaving);
+            print(leavingBox.length);
+            setState(() {
+              isLoading = false;
+            });
+            CustomNotification.show(context, 'موفقیت آمیز',
+                'درخواست مرخصی با موفقیت ثبت شد.', '/leave-request');
+          } catch (e) {
+            setState(() {
+              isLoading = false;
+            });
+            CustomNotification.show(context, 'خطا',
+                'در ثبت درخواست مشکلی وجود دارد.', '/');
+          }
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          CustomNotification.show(context, 'خطا',
+              'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+        }
+      }else{
+        setState(() {
+          isLoading = false;
+        });
+        CustomNotification.show(context, 'خطا',
+            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+      }}else{
       SaveLeaveRequestService saveLeaveRequestService =
       SaveLeaveRequestService(apiUrl);
       try {
