@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
         mobileController.text.trim(),
         passwordController.text,
       );
-print(loginResponse);
+      print(loginResponse);
       if (loginResponse.containsKey('access_token')) {
         authService.saveToken(loginResponse['access_token']);
         authService.saveMaxAssistanceValue(loginResponse['max_assistance_value']);
@@ -48,6 +48,7 @@ print(loginResponse);
         actionService.saveLastActionDescription(loginResponse['last_action_description']);
         actionService.saveLastActionType(loginResponse['last_action_type']);
         authService.saveInfo(loginResponse['user'], loginResponse['code']);
+        authService.getPersonnelShift(loginResponse['access_token']);
         _fetchImageFromServer(loginResponse['code']);
         Navigator.pushReplacementNamed(context, '/main');
       } else {
