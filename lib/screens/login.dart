@@ -94,7 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
         backgroundColor: CustomColor.backgroundColor,
         appBar: AppBar(
-          //title: Text(Consts.loginToApplication),
           automaticallyImplyLeading: false,
           backgroundColor: CustomColor.backgroundColor,
         ),
@@ -115,9 +114,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius:
-                      BorderRadius.circular(2.0), // Adjust the radius as needed
+                      BorderRadius.circular(2.0),
                 ),
-                //elevation: 8,
                 color: CustomColor.cardColor,
 
                 child: Padding(
@@ -226,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
-                                10.0), // Adjust the radius as needed
+                                10.0),
                           ),
                           minimumSize: const Size(double.infinity, 48),
                           primary: CustomColor.successColor,
