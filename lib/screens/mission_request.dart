@@ -228,7 +228,6 @@ class _MissionRequestState extends State<MissionRequest> {
             children: [
               LinearDatePicker(
                 startDate: startDateController.text,
-                //endDate: "1398/01/14",
                 addLeadingZero: true,
                 dateChangeListener: (String selectedDate) {
                   selected = selectedDate;
@@ -847,7 +846,7 @@ class _MissionRequestState extends State<MissionRequest> {
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
-                                      10.0), // Adjust the radius as needed
+                                      10.0),
                                 ),
                                 minimumSize: const Size(double.infinity, 48),
                                 primary: CustomColor.successColor,
@@ -892,7 +891,6 @@ class _AllMissionsListState extends State<AllMissions> {
     setState(() {
       isSyncing = true;
     });
-    ActionService actionService = ActionService('https://afkhambpms.ir/api1');
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save_mission_request';
     SaveMissionRequestService saveMissionRequestService = SaveMissionRequestService(apiUrl);
     final List<Mission>? results =
@@ -1117,9 +1115,7 @@ class _AllMissionsListState extends State<AllMissions> {
                   children: [
                     Text("به روز رسانی"),
                     SizedBox(width: 8),
-                    // Add some spacing between the icon and text
                     Icon(Icons.update),
-                    // Add the desired icon
                   ],
                 ),
                 onPressed: () {
@@ -1148,7 +1144,6 @@ class _AllMissionsListState extends State<AllMissions> {
                               padding: EdgeInsets.only(bottom: 15),
                               child: Padding(
                                 padding: EdgeInsets.only(bottom: 16.0),
-                                // Adjust the value as needed
                                 child: ListView.builder(
                                   shrinkWrap: true,
                                   itemCount: allMissionsList.length,
@@ -1547,7 +1542,6 @@ class _AllMissionsListState extends State<AllMissions> {
   Future<void> fetchData(BuildContext context) async {
     final AuthService authService = AuthService('https://afkhambpms.ir/api1');
     final token = await authService.getToken();
-    print(token);
     setState(() {
       isLoading = true;
     });
@@ -1574,8 +1568,6 @@ class _AllMissionsListState extends State<AllMissions> {
             var check = await box.values.toList();
             if (check.length == 0) {
               for (var leving in temp) {
-                print(leving);
-
                 Mission mission = Mission(
                   jalali_request_date: leving['jalali_request_date'],
                   type: leving['type'],
@@ -1616,7 +1608,6 @@ class _AllMissionsListState extends State<AllMissions> {
           });
         }
       } else {
-        print(box);
         for (var res in box.values.toList()
           ..sort((a, b) => b.key.compareTo(a.key))) {
           var mission = {
@@ -1632,14 +1623,12 @@ class _AllMissionsListState extends State<AllMissions> {
             'description': res.description,
           };
           allMissionsList.add(mission);
-          print(res.status);
         }
         setState(() {
           isLoading = false;
         });
       }
     } else {
-      print(box);
       for (var res in box.values.toList()
         ..sort((a, b) => b.key.compareTo(a.key))) {
         var mission = {
@@ -1655,7 +1644,6 @@ class _AllMissionsListState extends State<AllMissions> {
           'description': res.description,
         };
         allMissionsList.add(mission);
-        print(res.status);
       }
       setState(() {
         isLoading = false;
