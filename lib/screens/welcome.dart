@@ -1,11 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../services/update_service.dart';
 import '../services/auth_service.dart';
 import '../utils/consts.dart';
 import '../utils/custom_color.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:geocoding/geocoding.dart';
+
 import '../utils/custom_notification.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -17,6 +23,7 @@ class _WelcomeState extends State<WelcomeScreen> {
   String version = '';
   bool readyToUpdate = false;
   bool isLogined = false;
+  bool isDateTimeAutomaticallySet = false;
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
   final UpdateService updateService =
       UpdateService('https://afkhambpms.ir/api1/update');
@@ -46,123 +53,128 @@ class _WelcomeState extends State<WelcomeScreen> {
     final accessToken = await authService.getToken();
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult != ConnectivityResult.none) {
-      if (accessToken != null) {
-        final validAccessToken =
-            await authService.isAccessTokenValid(accessToken);
-        (validAccessToken)
-            ? setState(() {
-                isLogined = true;
-              })
-            : setState(() {
-                isLogined = false;
-              });
-        await Future.delayed(Duration(seconds: 3));
-        (validAccessToken)
-            ? (!readyToUpdate)
-                ? Navigator.pushReplacementNamed(context, '/main')
-                : null
-            : Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        await Future.delayed(Duration(seconds: 3));
-        (!readyToUpdate)
-            ? Navigator.pushReplacementNamed(context, '/login')
-            : null;
-      }
+        if (accessToken != null) {
+          final validAccessToken =
+          await authService.isAccessTokenValid(accessToken);
+          (validAccessToken)
+              ? setState(() {
+            isLogined = true;
+          })
+              : setState(() {
+            isLogined = false;
+          });
+          await Future.delayed(Duration(seconds: 3));
+          (validAccessToken)
+              ? (!readyToUpdate)
+              ? Navigator.pushReplacementNamed(context, '/main')
+              : null
+              : Navigator.pushReplacementNamed(context, '/login');
+        } else {
+          await Future.delayed(Duration(seconds: 3));
+          (!readyToUpdate)
+              ? Navigator.pushReplacementNamed(context, '/login')
+              : null;
+        }
     } else {
-      if (accessToken != null) {
-        await Future.delayed(Duration(seconds: 3));
-        Navigator.pushReplacementNamed(context, '/main');
-      } else {
-        await Future.delayed(Duration(seconds: 3));
-        Navigator.pushReplacementNamed(context, '/login');
-      }
+        if (accessToken != null) {
+          await Future.delayed(Duration(seconds: 3));
+          Navigator.pushReplacementNamed(context, '/main');
+        } else {
+          await Future.delayed(Duration(seconds: 3));
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+
     }
   }
 
   void checkForAvailableUpdate() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
     final versionNumber = await updateService.getVersion();
     setState(() {
       version = versionNumber;
     });
-    try {
-      final response = await updateService.check();
-      if (response['status'] == 'successful') {
-        setState(() {
-          readyToUpdate = true;
-        });
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Center(
-                  child: Text(Consts.update,
-                      style: TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.bold))),
-              content: (response['description'].toString().length > 0)
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(Consts.updateIsAvailable),
-                        SizedBox(height: 10),
-                        // Spacer
-                        Text('لیست تغییرات:'),
-                        //
-                        SizedBox(height: 5),
-                        // Spacer// Displaying the URL for demonstration
-                        Text(response['description']),
-                        // Displaying the URL for demonstration
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(Consts.updateIsAvailable),
-                      ],
-                    ),
-              actions: <Widget>[
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.green),
-                    shape: MaterialStateProperty.all<OutlinedBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            7.0), // Adjust the radius as needed
+    if (connectivityResult != ConnectivityResult.none) {
+
+      try {
+        final response = await updateService.check();
+        if (response['status'] == 'successful') {
+          setState(() {
+            readyToUpdate = true;
+          });
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Center(
+                    child: Text(Consts.update,
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold))),
+                content: (response['description']
+                    .toString()
+                    .length > 0)
+                    ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(Consts.updateIsAvailable),
+                    SizedBox(height: 10),
+                    Text('لیست تغییرات:'),
+                    SizedBox(height: 5),
+                    Text(response['description']),
+                  ],
+                )
+                    : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(Consts.updateIsAvailable),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor:
+                      MaterialStateProperty.all<Color>(Colors.green),
+                      shape: MaterialStateProperty.all<OutlinedBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              7.0),
+                        ),
                       ),
                     ),
+                    onPressed: () {
+                      _launchURL(response['url']);
+                    },
+                    child: Text(
+                      Consts.update, style: TextStyle(color: Colors.white),),
                   ),
-                  onPressed: () {
-                    _launchURL(response['url']);
-                  },
-                  child: Text(Consts.update,style: TextStyle(color: Colors.white),),
-                ),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.red),
-                    shape: MaterialStateProperty.all<OutlinedBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                            7.0), // Adjust the radius as needed
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor:
+                      MaterialStateProperty.all<Color>(Colors.red),
+                      shape: MaterialStateProperty.all<OutlinedBorder>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              7.0),
+                        ),
                       ),
                     ),
+                    onPressed: () {
+                      startPageDetector();
+                    },
+                    child: Text(
+                        Consts.cancel, style: TextStyle(color: Colors.white)),
                   ),
-                  onPressed: () {
-                    startPageDetector();
-                  },
-                  child: Text(Consts.cancel,style: TextStyle(color: Colors.white)),
-                ),
-              ],
-            );
-          },
-        );
+                ],
+              );
+            },
+          );
+        }
+      } catch (e) {
+         CustomNotification.show(context, 'ناموفق',
+             'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'home');
       }
-    } catch (e) {
-      // CustomNotification.show(context, 'ناموفق',
-      //     'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'home');
     }
   }
 
@@ -171,7 +183,6 @@ class _WelcomeState extends State<WelcomeScreen> {
       backgroundColor: CustomColor.backgroundColor,
       body: Stack(
         children: [
-          // Logo at the center
           Center(
             child: Container(
               width: 150,
@@ -199,7 +210,7 @@ class _WelcomeState extends State<WelcomeScreen> {
                   Text(
                     ' نسخه ${version}',
                     style: TextStyle(fontSize: 18),
-                  ),
+                  )
                 ],
               ),
             ),
