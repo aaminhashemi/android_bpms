@@ -135,10 +135,6 @@ class _PayslipListState extends State<PayslipList> {
             'payslip');
       }
     }else{
-      print(box);
-      //final x=payslipBox?.values.toList();
-      //print(payslipBox?.length);
-
       for(var res in box.values.toList()){
         var payslip= {
           'id': res.id.toInt(),
@@ -148,7 +144,6 @@ class _PayslipListState extends State<PayslipList> {
           'payment_date': res.payment_date,
         };
         payslipList.add(payslip);
-        print(res.payment_period);
       }
       setState(() {
         isLoading=false;
@@ -368,15 +363,13 @@ class PayslipDetails extends StatelessWidget {
                 children: [
                   Text("دریافت"),
                   SizedBox(width: 4),
-                  // Add some spacing between the icon and text
                   Icon(Icons.download),
-                  // Add the desired icon
                 ],
               ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
-                      10.0), // Adjust the radius as needed
+                      10.0),
                 ),
                 primary: CustomColor.test1,
               ),
