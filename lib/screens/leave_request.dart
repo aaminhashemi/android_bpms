@@ -57,7 +57,6 @@ class _AllLeaveListState extends State<AllLeaves> {
     setState(() {
       isSyncing = true;
     });
-    ActionService actionService = ActionService('https://afkhambpms.ir/api1');
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save_leaving_request';
     SaveLeaveRequestService saveLeaveRequestService = SaveLeaveRequestService(apiUrl);
     final List<Leaving>? results =
@@ -183,8 +182,6 @@ class _AllLeaveListState extends State<AllLeaves> {
         return false;
       },
       child: Scaffold(
-        //backgroundColor: CustomColor.backgroundColor,
-
         appBar: AppBar(
           iconTheme: IconThemeData(color: CustomColor.drawerBackgroundColor),
           title: Text('مرخصی', style: TextStyle(color: CustomColor.textColor)),
@@ -300,9 +297,7 @@ class _AllLeaveListState extends State<AllLeaves> {
                 children: [
                   Text("به روز رسانی"),
                   SizedBox(width: 8),
-                  // Add some spacing between the icon and text
                   Icon(Icons.update),
-                  // Add the desired icon
                 ],
               ),
               onPressed: () {
@@ -403,7 +398,6 @@ class _AllLeaveListState extends State<AllLeaves> {
                                 trailing: InkWell(
                                   child: (leave['status'] == 'recorded')
                                       ? Container(
-                                    //margin: EdgeInsets.all(10),
                                     padding: EdgeInsets.all(8.0),
                                     decoration: BoxDecoration(
                                       color:
@@ -447,8 +441,6 @@ class _AllLeaveListState extends State<AllLeaves> {
                                   ),
                                 ),
                                 children: <Widget>[
-                                  //Padding(
-                                  //padding: const EdgeInsets.all(16.0),
                                   Container(
                                     color: CustomColor.cardColor,
                                     padding: EdgeInsets.all(16.0),
@@ -631,7 +623,6 @@ class _AllLeaveListState extends State<AllLeaves> {
                                       ],
                                     ),
                                   )
-                                  //),
                                 ],
                               ),
                             );
@@ -1617,7 +1608,7 @@ print(response['leaving']['level']);
                                 style: ElevatedButton.styleFrom(
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
-                                        10.0), // Adjust the radius as needed
+                                        10.0),
                                   ),
                                   minimumSize: const Size(double.infinity, 48),
                                   primary: CustomColor.buttonColor,
