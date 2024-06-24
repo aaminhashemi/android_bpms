@@ -2,30 +2,25 @@ import 'dart:async';
 import 'package:afkham/models/assistance.dart';
 import 'package:afkham/models/coordinate.dart';
 import 'package:afkham/models/leaving.dart';
-import 'package:afkham/services/save_leave_request_service.dart';
-import 'package:afkham/services/save_mission_request_service.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/attendance.dart';
 import '../models/loan.dart';
 import '../models/mission.dart';
-import '../models/rollcal.dart';
-import '../services/loan_service.dart';
-import '../services/save_assistance_service.dart';
 import '../utils/custom_notification.dart';
 import '../widgets/app_drawer.dart';
 import '../utils/custom_color.dart';
 import '../services/auth_service.dart';
 import '../services/action_service.dart';
 import '../services/home_service.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:intl/intl.dart' as intl;
-import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
   runApp(MyApp());
@@ -39,30 +34,29 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Home(),
+      home: SwipeToRefreshExample(),
     );
   }
 }
 
-class Home extends StatefulWidget {
+class SwipeToRefreshExample extends StatefulWidget {
   @override
-  _HomeState createState() => _HomeState();
+  _SwipeToRefreshExampleState createState() => _SwipeToRefreshExampleState();
 }
 
-class _HomeState extends State<Home> {
+class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
   final HomeService homeService = HomeService('https://afkhambpms.ir/api1');
-  final ActionService actionService =
-  ActionService('https://afkhambpms.ir/api1');
+  final ActionService actionService = ActionService('https://afkhambpms.ir/api1');
 
   bool isSyncing = false;
   bool isLoading = true;
   late double distance;
   bool _isInRange = false;
-  bool isConnected = true;
+  bool isConnected = false;
   bool _requestAllowed = false;
   Box<Coordinate>? coordinateBox;
-  Box<Rollcal>? rollcalBox;
+  Box<Attendance>? attendanceBox;
   Box<Loan>? loanBox;
   Box<Mission>? missionBox;
   Box<Leaving>? leavingBox;
@@ -70,7 +64,7 @@ class _HomeState extends State<Home> {
 
   late double latitude;
   late double longitude;
-  List<Rollcal>? results;
+  List<Attendance>? results;
   List<Leaving>? leavingResults;
   List<Loan>? loanResults;
   List<Mission>? missionResults;
@@ -78,7 +72,6 @@ class _HomeState extends State<Home> {
   List<dynamic> targetLatitudes = [];
   List<dynamic> targetLongitudes = [];
   late double distanceThreshold;
-  late Timer _timer;
 
   late String availableAction;
   late String requestDate;
@@ -91,72 +84,27 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     initBox();
-    tz.initializeTimeZones();
     loadLastState();
-    sync();
+    connectionChecker();
     fetchCoordinates(context);
-    //checker();
-    _startLocationTracking();
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
-      _startLocationTracking();
-    });
   }
 
-  String getCurrentTimeForUtcOffset(Duration offset) {
-    final now = DateTime.now().toUtc();
-    final offsetTime = now.add(offset);
-    final formatter = intl.DateFormat('HH:mm');
-    return formatter.format(offsetTime);
+  Future<void> connectionChecker() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        isConnected = false;
+      });
+    } else {
+      setState(() {
+        isConnected = true;
+      });
+    }
   }
 
   @override
   void dispose() {
     super.dispose();
-    _timer.cancel(); //cancel the timer here
-  }
-
-  Future<void> _startLocationTracking() async {
-    try {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      );
-
-      double latitude = currentPosition.latitude;
-      double longitude = currentPosition.longitude;
-
-      bool isInPosition = false;
-
-      for (int i = 0; i < targetLatitudes.length; i++) {
-        double distance = Geolocator.distanceBetween(
-          latitude,
-          longitude,
-          targetLatitudes[i],
-          targetLongitudes[i],
-        );
-        //print(targetLatitudes[i].runtimeType);
-        if (distance < distanceThreshold) {
-          isInPosition = true;
-          break;
-        }
-      }
-      if (mounted) {
-        setState(() {
-          _isInRange = isInPosition;
-          _requestAllowed = isInPosition;
-        });
-      }
-      simple();
-    } catch (e) {
-      CustomNotification.show(context, 'خطا', 'مشکلی وجود دارد.', '');
-      print(e.toString());
-      if (mounted) {
-        setState(() {
-          _isInRange = false;
-          _requestAllowed = false;
-        });
-      }
-      simple();
-    }
   }
 
   Widget simple() {
@@ -323,120 +271,42 @@ class _HomeState extends State<Home> {
   }
 
   getCurrentTime() {
-    final utcPlus3_30 = Duration(hours: 3, minutes: 30);
-    final timeForUtcPlus3_30 = getCurrentTimeForUtcOffset(utcPlus3_30);
-    return timeForUtcPlus3_30;
-
+    final now = DateTime.now();
+    final formatter = DateFormat('HH:mm:ss');
+    return formatter.format(now);
   }
+
   Future<void> loadLastState() async {
     var savedValue = await actionService.getLastActionInfo();
     var shiftValue = await authService.getShiftInfo();
-
+    setState(() {
+      distanceThreshold = double.parse(savedValue['distance']);
+    });
     TimeOfDay givenTime = parseTimeString(getCurrentTime());
 
     TimeOfDay startTime = parseTimeString(shiftValue['start']);
-          TimeOfDay startTimeUntil = parseTimeString(shiftValue['can_start']);
-          // Parse the start and end time strings into TimeOfDay objects
-          TimeOfDay endTime = parseTimeString(shiftValue['end']);
-          TimeOfDay endTimeUntil = parseTimeString(shiftValue['can_end']);
+    TimeOfDay startTimeUntil = parseTimeString(shiftValue['can_start']);
 
-          bool startIsBetween = isTimeBetween(givenTime, startTime, startTimeUntil);
+    TimeOfDay endTime = parseTimeString(shiftValue['end']);
+    TimeOfDay endTimeUntil = parseTimeString(shiftValue['can_end']);
 
-          bool endIsBetween = isTimeBetween(givenTime, endTime, endTimeUntil);
-          //print('startttttttttttttttttttttttttttttt');
+    bool startIsBetween = isTimeBetween(givenTime, startTime, startTimeUntil);
 
-          if(startIsBetween){
-            setState(() {
-              distanceThreshold = double.parse(savedValue['distance']);
-              lastActionDescription = savedValue['description'];
-              lastActionType = 'exit';
-            });
-            //print('startttttttttttttttttttttttttttttt');
-          }
-          if(endIsBetween){
-            setState(() {
-              distanceThreshold = double.parse(savedValue['distance']);
-              lastActionDescription = savedValue['description'];
-              lastActionType = 'arrival';
-            });
-            //print('endddddddddddddddddddddddddddddddddddddd');
-          }
+    bool endIsBetween = isTimeBetween(givenTime, endTime, endTimeUntil);
 
-    /*String dateTimeString = removeWord(lastActionDescription, 'ورود').trim();
-
-    List<String> parts = dateTimeString.split(' ');
-    print('parts');
-    print(dateTimeString);
-    print('parts');
-
-    if (parts.length != 2) {
-      throw FormatException('Invalid date and time format');
+    if (startIsBetween) {
+      setState(() {
+        lastActionDescription = savedValue['description'];
+        lastActionType = 'exit';
+      });
     }
-
-    String timePart = parts[0];
-    String  datePart= parts[1];
-    print('parts11111');
-    print(parts[1]);
-    print('parts11111');
-    // Split the time part into hours, minutes, and seconds
-    List<String> timeParts = timePart.split(':');
-    if (timeParts.length != 3) {
-      throw FormatException('Invalid time format');
+    if (endIsBetween) {
+      setState(() {
+        lastActionDescription = savedValue['description'];
+        lastActionType = 'arrival';
+      });
     }
-
-    int hour = int.parse(timeParts[0]);
-    int minute = int.parse(timeParts[1]);
-    int second = int.parse(timeParts[2]);
-
-    // Split the date part into year, month, and day
-    List<String> dateParts = datePart.split('/');
-    if (dateParts.length != 3) {
-      throw FormatException('Invalid date format');
-    }
-
-    try {
-      int year = int.parse(dateParts[0]);
-      int month = int.parse(dateParts[1]);
-      int day = int.parse(dateParts[2]);
-
-      // Create a Jalali date
-      Jalali jalaliDate = Jalali(year, month, day);
-
-      // Convert to Gregorian date
-      Gregorian gregorianDate = jalaliDate.toGregorian();
-
-      // Return a DateTime object
-      DateTime xxx= DateTime(
-        gregorianDate.year,
-        gregorianDate.month,
-        gregorianDate.day,
-        hour,
-        minute,
-        second,
-      );
-
-      DateTime dateTimePlus18Hours = xxx.add(Duration(hours: 17));
-
-      DateTime now = DateTime.now().toUtc();
-      final offsetTime = now.add(Duration(hours: 3, minutes: 30));
-
-      if (offsetTime.isAfter(dateTimePlus18Hours)) {
-        if(lastActionType=='arrival'){
-          //alert('hiiiiiiiiiiii');
-          setState(() {
-            lastActionType='exit';
-          });
-        }
-      } else {
-        print('18 hours have not passed since the given time.');
-      }
-
-
-    } catch (e) {
-      throw FormatException('Error parsing date parts: $e');
-    }*/
   }
-
 
   TimeOfDay parseTimeString(String timeString) {
     List<String> parts = timeString.split(':');
@@ -452,452 +322,86 @@ class _HomeState extends State<Home> {
     int endMinutes = endTime.hour * 60 + endTime.minute;
     return givenMinutes >= startMinutes && givenMinutes <= endMinutes;
   }
+
   Future<void> initBox() async {
     coordinateBox = await Hive.openBox('coordinateBox');
-    rollcalBox = await Hive.openBox('rollcalBox');
-    loanBox = await Hive.openBox('loanBox');
-    assistanceBox = await Hive.openBox('assistanceBox');
-    leavingBox = await Hive.openBox('leavingBox');
-    missionBox = await Hive.openBox('missionBox');
-    results =
-        await rollcalBox?.values.where((data) => data.synced == false).toList();
-    leavingResults =
-        await leavingBox?.values.where((data) => data.synced == false).toList();
-    loanResults =
-        await loanBox?.values.where((data) => data.synced == false).toList();
-    missionResults =
-        await missionBox?.values.where((data) => data.synced == false).toList();
-    assistanceResults = await assistanceBox?.values
+    attendanceBox = await Hive.openBox('attendanceBox');
+    results = await attendanceBox?.values
         .where((data) => data.synced == false)
         .toList();
   }
-
-  Future<void> sync() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult != ConnectivityResult.none) {
-      setState(() {
-        isSyncing = true;
-      });
-      rollcalBox = await Hive.openBox('rollcalBox');
-      results = await rollcalBox?.values
-          .where((data) => data.synced == false)
-          .toList();
-      ActionService actionService = ActionService('https://afkhambpms.ir/api1');
-
-      if (results!.isNotEmpty) {
-        for (var result in results!) {
-          try {
-            final actionResponse = await actionService.updateManual(
-              result.jalali_date,
-              result.time,
-              result.type,
-              result.status,
-              result.description ?? '',
-            );
-
-            if (actionResponse['status'] == 'successful') {
-              Rollcal rollcal = Rollcal(
-                status: result.status,
-                jalali_date: result.jalali_date,
-                time: result.time,
-                type: result.type,
-                synced: true,
-                description: result.description,
-              );
-              rollcalBox?.put(result.key, rollcal);
-              //print('1');
-              //print('synced');
-              //print('1');
-            }
-          } catch (e) {
-            CustomNotification.show(context, 'ناموفق',
-                'در به روز رسانی اطلاعات مشکلی وجود دارد.', '');
-          }
-        }
-      }
-
-      setState(() {
-        isSyncing = false;
-      });
-      //print(isSyncing);
-    }
-    if (connectivityResult != ConnectivityResult.none) {
-      const LoanApiUrl = 'https://afkhambpms.ir/api1/personnels/save-loan';
-      LoanService loanService = LoanService(LoanApiUrl);
-      loanBox = await Hive.openBox('loanBox');
-      loanResults =
-          await loanBox?.values.where((data) => data.synced == false).toList();
-      if (loanResults!.isNotEmpty) {
-        for (var result in loanResults!) {
-          try {
-            final response = await loanService.save(
-              result.jalali_request_date,
-              result.suggested_value,
-              result.suggested_repayment_count ?? '',
-              result.description,
-            );
-            if (response['status'] == 'successful') {
-              Loan loan = Loan(
-                jalali_request_date: result.jalali_request_date,
-                suggested_value: result.suggested_value,
-                level: response['loan']['level'],
-                status: response['loan']['level'],
-                formatted_repayment_value: result.formatted_repayment_value,
-                suggested_repayment_count: result.suggested_repayment_count,
-                repayment_count: result.repayment_count,
-                description: result.description,
-                synced: true,
-              );
-              loanBox?.put(result.key, loan);
-              //print('1');
-              //print('synced');
-              //print('1');
-            }
-          } catch (e) {
-            CustomNotification.show(context, 'ناموفق',
-                'در به روز رسانی اطلاعات مشکلی وجود دارد.', '');
-          }
-        }
-      }
-
-      const missionApiUrl =
-          'https://afkhambpms.ir/api1/personnels/save_mission_request';
-      SaveMissionRequestService saveMissionRequestService =
-          SaveMissionRequestService(missionApiUrl);
-      missionBox = await Hive.openBox('missionBox');
-      missionResults = await missionBox?.values
-          .where((data) => data.synced == false)
-          .toList();
-      if (missionResults!.isNotEmpty) {
-        for (var result in missionResults!) {
-          try {
-            var type = '';
-            switch (result.type) {
-              case 'روزانه':
-                type = 'daily';
-                break;
-              case 'ساعتی':
-                type = 'hourly';
-                break;
-              default:
-                type = 'choose_type';
-            }
-            final response = await saveMissionRequestService.saveMissionRequest(
-              result.jalali_request_date,
-              result.start,
-              result.end,
-              result.start,
-              result.end,
-              result.origin,
-              result.destination,
-              result.reason,
-              type,
-            );
-            if (response['status'] == 'successful') {
-              Mission mission = Mission(
-                jalali_request_date: result.jalali_request_date,
-                type: result.type,
-                level: response['loan']['level'],
-                status: response['loan']['level'],
-                start: result.start,
-                end: result.end,
-                origin: result.origin,
-                destination: result.destination,
-                reason: result.reason,
-                description: null,
-                synced: true,
-              );
-              missionBox?.put(result.key, mission);
-              //print('1');
-              //print('synced');
-              //print('1');
-            }
-          } catch (e) {
-            CustomNotification.show(context, 'ناموفق',
-                'در به روز رسانی اطلاعات مشکلی وجود دارد.', '');
-          }
-        }
-      }
-
-      const leavingApiUrl =
-          'https://afkhambpms.ir/api1/personnels/save_leaving_request';
-      SaveLeaveRequestService saveLeaveRequestService =
-          SaveLeaveRequestService(leavingApiUrl);
-      leavingBox = await Hive.openBox('leavingBox');
-      leavingResults = await leavingBox?.values
-          .where((data) => data.synced == false)
-          .toList();
-      if (leavingResults!.isNotEmpty) {
-        for (var result in leavingResults!) {
-          try {
-            var period = '';
-            switch (result.period) {
-              case 'روزانه':
-                period = 'daily';
-                break;
-              case 'ساعتی':
-                period = 'hourly';
-                break;
-              default:
-                period = 'choose_type';
-            }
-            var type = '';
-            switch (result.type) {
-              case 'استحقاقی':
-                type = 'deserved';
-                break;
-              case 'استعلاجی':
-                type = 'sickness';
-                break;
-              case 'بدون حقوق':
-                type = 'without_salary';
-                break;
-              default:
-                type = 'choose_type';
-            }
-            final response = await saveLeaveRequestService.saveLeaveRequest(
-              result.jalali_request_date,
-              result.start,
-              result.end,
-              result.start,
-              result.end,
-              result.reason,
-              period,
-              type,
-            );
-            if (response['status'] == 'successful') {
-              Leaving leaving = Leaving(
-                jalali_request_date: result.jalali_request_date,
-                period: result.period,
-                status: response['leaving']['status'],
-                level: response['leaving']['level'],
-                type: result.type,
-                start: result.start,
-                end: result.end,
-                reason: result.reason,
-                description: result.description,
-                synced: true,
-              );
-              leavingBox?.put(result.key, leaving);
-              //print('1');
-              //print('synced');
-              //print('1');
-            }
-          } catch (e) {
-            CustomNotification.show(context, 'ناموفق',
-                'در به روز رسانی اطلاعات مشکلی وجود دارد.', '');
-          }
-        }
-      }
-
-      const assistanceApiUrl =
-          'https://afkhambpms.ir/api1/personnels/save-assistance';
-      SaveAssistanceService saveAssistanceService =
-          SaveAssistanceService(assistanceApiUrl);
-      assistanceBox = await Hive.openBox('assistanceBox');
-      assistanceResults = await assistanceBox?.values
-          .where((data) => data.synced == false)
-          .toList();
-      if (assistanceResults!.isNotEmpty) {
-        for (var result in assistanceResults!) {
-          try {
-            final response = await saveAssistanceService.saveAssistance(
-              result.record_date,
-              result.price,
-            );
-            if (response['status'] == 'successful') {
-              Assistance assistance = Assistance(
-                level: response['assistance']['level'],
-                price: result.price,
-                payment_period: response['assistance']['payment_period'],
-                record_date: result.record_date,
-                deposit_date: null,
-                payment_date: null,
-                synced: true,
-              );
-              assistanceBox?.put(result.key, assistance);
-              //print('1');
-              //print('synced');
-              //print('1');
-            } else if (response['status'] == 'existed') {
-              await assistanceBox?.delete(result.key);
-            }
-          } catch (e) {
-            CustomNotification.show(context, 'ناموفق',
-                'در به روز رسانی اطلاعات مشکلی وجود دارد.', '');
-          }
-        }
-      }
-    }
-  }
-
-/*  Future<void> connectionChecker() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      setState(() {
-        isConnected = false;
-      });
-    } else {
-      setState(() {
-        isConnected = true;
-      });
-    }
-  }*/
 
   void submitArrivalAction() async {
     setState(() {
       isLoading = true;
     });
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      setState(() {
-        isConnected = false;
-      });
-    } else {
-      setState(() {
-        isConnected = true;
-      });
-    }
-    if (isConnected) {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
+
+    Position currentPosition = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.best,
+    );
+    DateTime dt = DateTime.now();
+    Jalali j = dt.toJalali();
+    final f = j.formatter;
+    requestDate = '${f.yyyy}/${f.mm}/${f.dd}';
+    setState(() {
+      _requestAllowed = false;
+      _isInRange = false;
+    });
+    for (int i = 0; i < targetLatitudes.length; i++) {
+      distance = Geolocator.distanceBetween(
+        currentPosition.latitude,
+        currentPosition.longitude,
+        targetLatitudes[i],
+        targetLongitudes[i],
       );
-      DateTime dt = DateTime.now();
-      Jalali j = dt.toJalali();
-      final f = j.formatter;
-      requestDate = '${f.yyyy}/${f.mm}/${f.dd}';
-
-      for (int i = 0; i < targetLatitudes.length; i++) {
-        if (!_requestAllowed) {
-          distance = Geolocator.distanceBetween(
-            currentPosition.latitude,
-            currentPosition.longitude,
-            targetLatitudes[i],
-            targetLongitudes[i],
-          );
-          if (distance < distanceThreshold) {
-            setState(() {
-              _requestAllowed = true;
-            });
-          }
-        }
+      if (distance < distanceThreshold) {
+        setState(() {
+          _requestAllowed = true;
+          _isInRange = true;
+        });
+        break;
       }
-      if (_requestAllowed) {
-        var time = getCurrentTime();
+    }
+    if (_requestAllowed) {
+      attendanceBox = await Hive.openBox('attendanceBox');
+      final attendanceBox1 = Hive.box<Attendance>('attendanceBox');
 
-        if (!isSyncing) {
-          try {
-            final rollcalBox = Hive.box<Rollcal>('rollcalBox');
-            int id = rollcalBox.length;
-            final actionResponse = await actionService.updateManual(
-              requestDate,
-              getCurrentTime(),
-              'systemic',
-              'arrival',
-              '',
-            );
+      try {
+        final actionResponse =
+            await actionService.updateManual('systemic', 'arrival', '');
 
-            if (actionResponse['status'] == 'successful') {
-              Rollcal rollcal = Rollcal(
-                status: 'arrival',
-                jalali_date: requestDate,
-                time: time,
-                type: 'systemic',
-                synced: true,
-                description: '',
-              );
-              rollcalBox.add(rollcal);
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('last_action_description', ' ورود ' + time);
-              await prefs.setString('last_action_type', 'arrival');
-              setState(() {
-                lastActionType = 'arrival';
-                lastActionDescription = ' ورود ' + time;
-              });
-            }
-          } catch (e) {
-            CustomNotification.show(
-                context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
-          }
-        } else {
-          final rollcalBox = Hive.box<Rollcal>('rollcalBox');
-          int id = rollcalBox.length;
-          Rollcal rollcal = Rollcal(
-              status: 'arrival',
-              jalali_date: requestDate,
-              time: time,
-              type: 'systemic',
-              synced: false,
-              description: '');
-          rollcalBox.add(rollcal);
+        if (actionResponse['status'] == 'successful') {
+          Attendance attendance = Attendance(
+            status: 'arrival',
+            jalali_date: actionResponse['date'],
+            time: actionResponse['time'],
+            type: 'systemic',
+            synced: true,
+            description: '',
+          );
+          attendanceBox1.add(attendance);
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('last_action_description', ' ورود ' + time);
+          await prefs.setString('last_action_description',
+              ' ورود ' + actionResponse['time'] + ' ' + actionResponse['date']);
           await prefs.setString('last_action_type', 'arrival');
           setState(() {
             lastActionType = 'arrival';
-            lastActionDescription = ' ورود ' + time;
+            lastActionDescription = ' ورود ' +
+                actionResponse['time'] +
+                ' ' +
+                actionResponse['date'];
           });
         }
-      } else {
-        CustomNotification.show(
-            context, 'خطا', 'شما در محدوده ی تعیین شده حضور ندارید.', '');
+      } catch (e) {
+        CustomNotification.show(context, 'ناموفق', e.toString(), '');
       }
-      setState(() {
-        isLoading = false;
-      });
     } else {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      );
-      //print(currentPosition.longitude.runtimeType);
-      DateTime dt = DateTime.now();
-      Jalali j = dt.toJalali();
-      final f = j.formatter;
-      requestDate = '${f.yyyy}/${f.mm}/${f.dd}';
-
-      for (int i = 0; i < targetLatitudes.length; i++) {
-        if (!_requestAllowed) {
-          distance = Geolocator.distanceBetween(
-            currentPosition.latitude,
-            currentPosition.longitude,
-            targetLatitudes[i],
-            targetLongitudes[i],
-          );
-          if (distance < distanceThreshold) {
-            setState(() {
-              _requestAllowed = true;
-            });
-          }
-        }
-      }
-      if (_requestAllowed) {
-        final box = Hive.box<Rollcal>('rollcalBox');
-        int id = box.length;
-        var time = getCurrentTime();
-        Rollcal rollcal = Rollcal(
-            status: 'arrival',
-            jalali_date: requestDate,
-            time: time,
-            type: 'systemic',
-            synced: false,
-            description: '');
-        box.add(rollcal);
-        //print(box.length);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('last_action_description', ' ورود ' + time);
-        await prefs.setString('last_action_type', 'arrival');
-        setState(() {
-          lastActionType = 'arrival';
-          lastActionDescription = ' ورود ' + time;
-        });
-      } else {
-        CustomNotification.show(
-            context, 'خطا', 'شما در محدوده ی تعیین شده حضور ندارید.', '');
-      }
-      setState(() {
-        isLoading = false;
-      });
+      CustomNotification.show(
+          context, 'خطا', 'شما در محدوده ی تعیین شده حضور ندارید.', '');
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   void submitExitAction() async {
@@ -913,155 +417,69 @@ class _HomeState extends State<Home> {
     Jalali j = dt.toJalali();
     final f = j.formatter;
     requestDate = '${f.yyyy}/${f.mm}/${f.dd}';
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      setState(() {
-        isConnected = false;
-      });
-    } else {
-      setState(() {
-        isConnected = true;
-      });
-    }
-    if (isConnected) {
-      //ActionService actionService = ActionService('https://afkhambpms.ir/api1');
-      for (int i = 0; i < targetLatitudes.length; i++) {
-        //print(targetLatitudes[i]);
-        if (!_requestAllowed) {
-          distance = Geolocator.distanceBetween(
-            currentPosition.latitude,
-            currentPosition.longitude,
-            targetLatitudes[i],
-            targetLongitudes[i],
-          );
-          if (distance < distanceThreshold) {
-            setState(() {
-              _requestAllowed = true;
-            });
-          }
-        }
+    setState(() {
+      _requestAllowed = false;
+      _isInRange = false;
+    });
+    for (int i = 0; i < targetLatitudes.length; i++) {
+      distance = Geolocator.distanceBetween(
+        currentPosition.latitude,
+        currentPosition.longitude,
+        targetLatitudes[i],
+        targetLongitudes[i],
+      );
+      if (distance < distanceThreshold) {
+        setState(() {
+          _requestAllowed = true;
+          _isInRange = true;
+        });
+        break;
       }
-      if (_requestAllowed) {
-        var time = getCurrentTime();
-        if (!isSyncing) {
-          try {
-            final rollcalBox = Hive.box<Rollcal>('rollcalBox');
-            int id = rollcalBox.length;
-            final actionResponse = await actionService.updateManual(
-              requestDate,
-              getCurrentTime(),
-              'systemic',
-              'exit',
-              '',
-            );
-
-            if (actionResponse['status'] == 'successful') {
-              Rollcal rollcal = Rollcal(
-                status: 'exit',
-                jalali_date: requestDate,
-                time: time,
-                type: 'systemic',
-                synced: true,
-                description: '',
-              );
-              rollcalBox.add(rollcal);
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.setString('last_action_description', ' خروج ' + time);
-              await prefs.setString('last_action_type', 'exit');
-              setState(() {
-                lastActionType = 'exit';
-                lastActionDescription = ' خروج ' + time;
-              });
-            }
-          } catch (e) {
-            CustomNotification.show(
-                context, 'ناموفق', 'در ثبت اطلاعات مشکلی وجود دارد.', '');
-          }
-        } else {
-          final rollcalBox = Hive.box<Rollcal>('rollcalBox');
-          int id = rollcalBox.length;
-          Rollcal rollcal = Rollcal(
-              status: 'exit',
-              jalali_date: requestDate,
-              time: time,
-              type: 'systemic',
-              synced: false,
-              description: '');
-          rollcalBox.add(rollcal);
-          //print(rollcalBox.length);
+    }
+    if (_requestAllowed) {
+      try {
+        attendanceBox = await Hive.openBox('attendanceBox');
+        final attendanceBox1 = Hive.box<Attendance>('attendanceBox');
+        final actionResponse = await actionService.updateManual(
+          'systemic',
+          'exit',
+          '',
+        );
+        if (actionResponse['status'] == 'successful') {
+          Attendance attendance = Attendance(
+            status: 'exit',
+            jalali_date: actionResponse['date'],
+            time: actionResponse['time'],
+            type: 'systemic',
+            synced: true,
+            description: '',
+          );
+          attendanceBox1.add(attendance);
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('last_action_description', ' خروج ' + time);
+          await prefs.setString('last_action_description',
+              ' خروج ' + actionResponse['time'] + ' ' + actionResponse['date']);
           await prefs.setString('last_action_type', 'exit');
           setState(() {
             lastActionType = 'exit';
-            lastActionDescription = ' خروج ' + time;
+            lastActionDescription = ' خروج ' +
+                actionResponse['time'] +
+                ' ' +
+                actionResponse['date'];
           });
         }
-      } else {
-        CustomNotification.show(
-            context, 'خطا', 'شما در محدوده ی تعیین شده حضور ندارید.', '');
+      } catch (e) {
+        CustomNotification.show(context, 'ناموفق', e.toString(), '');
       }
-      setState(() {
-        isLoading = false;
-      });
     } else {
-      Position currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      );
-      //print(currentPosition.longitude.runtimeType);
-      DateTime dt = DateTime.now();
-      Jalali j = dt.toJalali();
-      final f = j.formatter;
-      requestDate = '${f.yyyy}/${f.mm}/${f.dd}';
-
-      for (int i = 0; i < targetLatitudes.length; i++) {
-        if (!_requestAllowed) {
-          distance = Geolocator.distanceBetween(
-            currentPosition.latitude,
-            currentPosition.longitude,
-            targetLatitudes[i],
-            targetLongitudes[i],
-          );
-          if (distance < distanceThreshold) {
-            setState(() {
-              _requestAllowed = true;
-            });
-          }
-        }
-      }
-      if (_requestAllowed) {
-        var time = getCurrentTime();
-
-        final box = Hive.box<Rollcal>('rollcalBox');
-        int id = box.length;
-        Rollcal rollcal = Rollcal(
-            status: 'exit',
-            jalali_date: requestDate,
-            time: getCurrentTime(),
-            type: 'systemic',
-            synced: false,
-            description: '');
-        box.add(rollcal);
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('last_action_description', ' خروج ' + time);
-        await prefs.setString('last_action_type', 'exit');
-        setState(() {
-          lastActionType = 'exit';
-          lastActionDescription = ' خروج ' + time;
-        });
-      } else {
-        CustomNotification.show(
-            context, 'خطا', 'شما در محدوده ی تعیین شده حضور ندارید.', '');
-      }
-      setState(() {
-        isLoading = false;
-      });
+      CustomNotification.show(
+          context, 'خطا', 'شما در محدوده ی تعیین شده حضور ندارید.', '');
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<void> fetchCoordinates(BuildContext context) async {
-    //print(isSyncing);
-    //print('sync');
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
       setState(() {
@@ -1074,7 +492,6 @@ class _HomeState extends State<Home> {
     }
 
     if (isConnected) {
-      //print(isConnected);
       try {
         Position position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.high);
@@ -1087,7 +504,6 @@ class _HomeState extends State<Home> {
       }
       final AuthService authService = AuthService('https://afkhambpms.ir/api1');
       final token = await authService.getToken();
-      //fetchActionInfo();
 
       final response = await http
           .get(Uri.parse('https://afkhambpms.ir/api1/get-points'), headers: {
@@ -1099,9 +515,6 @@ class _HomeState extends State<Home> {
       if (response.statusCode == 200) {
         var res = json.decode(response.body);
 
-        //final prefs = await SharedPreferences.getInstance();
-        //await prefs.setString('threshold_distance', res['distance']);
-        //print(res['latitudes']);
         var tla = [];
         var tlo = [];
         for (var item in res['latitudes']) {
@@ -1113,9 +526,6 @@ class _HomeState extends State<Home> {
         setState(() {
           targetLatitudes = tla;
           targetLongitudes = tlo;
-          //distanceThreshold = double.parse(res['distance']);
-          //lastActionType = res['last_action_type'] ?? "";
-          // lastActionDescription = res['last_action_description'] ?? "";
         });
 
         actionService.saveLastActionDescription(res['last_action_description']);
@@ -1151,8 +561,6 @@ class _HomeState extends State<Home> {
             longitude: targetLongitudes[i],
           );
           box.add(coordinate);
-          //print('box.length');
-          //print(box.length);
         }
 
         setState(() {
@@ -1165,7 +573,6 @@ class _HomeState extends State<Home> {
         throw Exception('خطا در دریافت داده ها');
       }
     } else {
-      //print('no-internet');
       try {
         Position position = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.high);
@@ -1198,8 +605,7 @@ class _HomeState extends State<Home> {
         targetLatitudes = tla;
         targetLongitudes = tlo;
       });
-      //print(targetLatitudes);
-      //print(targetLongitudes);
+
       for (int i = 0; i < targetLatitudes.length; i++) {
         if (!_isInRange) {
           distance = Geolocator.distanceBetween(
@@ -1208,7 +614,6 @@ class _HomeState extends State<Home> {
             targetLatitudes[i],
             targetLongitudes[i],
           );
-          //print(distanceThreshold);
           if (distance < distanceThreshold) {
             setState(() {
               _isInRange = true;
@@ -1227,6 +632,60 @@ class _HomeState extends State<Home> {
     Navigator.pushReplacementNamed(context, '/login');
   }
 
+  Future<void> _refreshItems() async {
+    await Future.delayed(Duration(seconds: 1));
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        isConnected = false;
+      });
+    } else {
+      setState(() {
+        isConnected = true;
+      });
+    }
+    try {
+      Position currentPosition = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.best,
+      );
+
+      double latitude = currentPosition.latitude;
+      double longitude = currentPosition.longitude;
+
+      bool isInPosition = false;
+
+      for (int i = 0; i < targetLatitudes.length; i++) {
+        double distance = Geolocator.distanceBetween(
+          latitude,
+          longitude,
+          targetLatitudes[i],
+          targetLongitudes[i],
+        );
+
+        if (distance < distanceThreshold) {
+          isInPosition = true;
+          break;
+        }
+      }
+      if (mounted) {
+        setState(() {
+          _isInRange = isInPosition;
+          _requestAllowed = isInPosition;
+        });
+      }
+      simple();
+    } catch (e) {
+      CustomNotification.show(context, 'خطا', 'مشکلی وجود دارد.', '');
+      if (mounted) {
+        setState(() {
+          _isInRange = false;
+          _requestAllowed = false;
+        });
+      }
+      simple();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1241,279 +700,312 @@ class _HomeState extends State<Home> {
           ],
         ),
         drawer: AppDrawer(),
-        body: isLoading
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : Column(
-                /*
-          * */
-                children: [
-                    Center(
-                        child: Padding(
-                      padding: EdgeInsets.only(right: 8, left: 8, top: 8),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Card(
-                                color: CustomColor.cardColor,
-                                elevation: 2,
-                                margin: EdgeInsets.only(bottom: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
+        body: Container(
+            child: RefreshIndicator(
+          onRefresh: _refreshItems,
+          child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Container(
+                  padding: EdgeInsets.all(4.0),
+                  height: MediaQuery.of(context).size.height,
+                  alignment: Alignment.center,
+                  child: Center(
+                    child: (isLoading
+                        ? Center(
+                            child: CircularProgressIndicator(),
+                          )
+                        : Column(children: [
+                            Center(
                                 child: Padding(
-                                    padding: const EdgeInsets.all(15.0),
-                                    child: Column(children: [
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          RichText(
-                                              text:
-                                                  TextSpan(children: <TextSpan>[
-                                            TextSpan(
-                                              text: ' آخرین رویداد : ',
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: 'irs',
-                                                  fontWeight: FontWeight.bold,
-                                                  color: CustomColor.textColor),
-                                            ),
-                                            TextSpan(
-                                              text: '${lastActionDescription}',
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: 'irs',
-                                                  color: CustomColor.textColor),
-                                            ),
-                                          ])),
-                                          Spacer(),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              //checker();
-                                              //print(removeWord(lastActionDescription, 'ورود'));
-                                              Navigator.pushReplacementNamed(
-                                                  context, '/loc');
-                                            },
-                                            child: Text('مشاهده'),
-                                            style: ElevatedButton.styleFrom(
-                                              primary: Colors.teal,
-                                              // Background color of the button
-                                              onPrimary: Colors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10.0),
-                                              ),
-                                              padding: EdgeInsets.symmetric(
-                                                  vertical: 10, horizontal: 20),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ]))),
-                          ]),
-                    )),
-                    (_isInRange)
-                        ? (lastActionType == 'arrival')
-                            ? Padding(
-                                padding: EdgeInsets.only(
-                                    bottom: 8, left: 8, right: 8),
-                                child: Card(
-                                    color: CustomColor.cardColor,
-                                    elevation: 2,
-                                    margin: EdgeInsets.only(bottom: 20),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    child: Padding(
-                                        padding: const EdgeInsets.all(15.0),
-                                        child: Column(children: [
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              RichText(
-                                                  text: TextSpan(
-                                                      children: <TextSpan>[
-                                                    TextSpan(
-                                                        text: 'وضعیت : ',
-                                                        style: TextStyle(
-                                                            fontFamily: 'irs',
-                                                            fontSize: 12.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: CustomColor
-                                                                .textColor)),
-                                                    TextSpan(
-                                                        text: 'در حال کار',
-                                                        style: TextStyle(
-                                                            fontFamily: 'irs',
-                                                            fontSize: 12.0,
-                                                            color: CustomColor
-                                                                .textColor)),
-                                                  ])),
-                                              Spacer(),
-                                            ],
-                                          ),
-                                          Center(
-                                              child: Container(
-                                                  width: 100,
-                                                  height: 100,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
-                                                      color: Colors.red,
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  child: Container(
-                                                    width: 100,
-                                                    height: 100,
-                                                    decoration: BoxDecoration(
-                                                      shape: BoxShape.circle,
-                                                      border: Border.all(
-                                                        color: Colors.yellow,
-                                                        width: 1.0,
-                                                      ),
-                                                    ),
-                                                    child: ElevatedButton(
-                                                      onPressed: () {
-                                                        submitExitAction();
-                                                      },
-                                                      child: Text('خروج'),
-                                                      style: ElevatedButton
-                                                          .styleFrom(
-                                                        primary: Colors.red,
-                                                        onPrimary: Colors.white,
-                                                        shape: OvalBorder(
-                                                            side:
-                                                                BorderSide.none,
-                                                            eccentricity: 0.07),
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                vertical: 10,
-                                                                horizontal: 20),
-                                                      ),
-                                                    ),
-                                                  )))
-                                          /*Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      SizedBox(height: 5),
-                                      Text(
-                                        '${lastActionDescription}',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          color: CustomColor.textColor,
+                              padding:
+                                  EdgeInsets.only(right: 8, left: 8, top: 8),
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Card(
+                                        color: CustomColor.cardColor,
+                                        elevation: 2,
+                                        margin: EdgeInsets.only(bottom: 10),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
                                         ),
-                                      ),
-                                    ],
-                                  ),*/
-                                        ]))))
-                            : Padding(
-                                padding: EdgeInsets.all(8),
-                                child: Card(
-                                  color: CustomColor.cardColor,
-                                  elevation: 2,
-                                  margin: EdgeInsets.only(bottom: 20),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(15.0),
-                                    child: Column(children: [
-                                      Row(
-                                        children: [
-                                          RichText(
-                                              text:
-                                                  TextSpan(children: <TextSpan>[
-                                            TextSpan(
-                                                text: 'وضعیت : ',
-                                                style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                    fontSize: 12.0,
-                                                    fontWeight: FontWeight.bold,
-                                                    color:
-                                                        CustomColor.textColor)),
-                                            TextSpan(
-                                                text: 'حاضر در محل کار',
-                                                style: TextStyle(
-                                                    fontFamily: 'irs',
-                                                    fontSize: 12.0,
-                                                    color:
-                                                        CustomColor.textColor)),
-                                          ])),
-                                          Spacer(),
-                                        ],
-                                      ),
-                                      /*
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Padding(
-                                            padding: EdgeInsets.all(8),
-                                            child: Image.asset(
-                                                'assets/images/family.png',
-                                                //File('/assets/images/family.jpg'),
-                                                width: 300,
-                                                height: 200,
-                                                fit: BoxFit.cover),
-                                          )
-                                        ],
-                                      ),*/
-                                      Center(
-                                          child: Container(
-                                              width: 100,
-                                              height: 100,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: Colors.green,
-                                                  width: 1.0,
-                                                ),
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(15.0),
+                                            child: Column(children: [
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                        TextSpan(
+                                                          text:
+                                                              ' آخرین رویداد : ',
+                                                          style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontFamily: 'irs',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                        TextSpan(
+                                                          text:
+                                                              '${lastActionDescription}',
+                                                          style: TextStyle(
+                                                              fontSize: 12,
+                                                              fontFamily: 'irs',
+                                                              color: CustomColor
+                                                                  .textColor),
+                                                        ),
+                                                      ])),
+                                                  Spacer(),
+                                                  ElevatedButton(
+                                                    onPressed: () {
+                                                      Navigator
+                                                          .pushReplacementNamed(
+                                                              context, '/loc');
+                                                    },
+                                                    child: Text('مشاهده'),
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      primary: Colors.teal,
+                                                      onPrimary: Colors.white,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                      ),
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              vertical: 10,
+                                                              horizontal: 20),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              child: Container(
-                                                width: 100,
-                                                height: 100,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.yellow,
-                                                    width: 1.0,
+                                            ]))),
+                                  ]),
+                            )),
+                      (isConnected)?
+                            (_isInRange)
+                                ? (lastActionType == 'arrival')
+                                    ? Padding(
+                                        padding: EdgeInsets.only(
+                                            bottom: 8, left: 8, right: 8),
+                                        child: Card(
+                                            color: CustomColor.cardColor,
+                                            elevation: 2,
+                                            margin: EdgeInsets.only(bottom: 20),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
+                                            ),
+                                            child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(15.0),
+                                                child: Column(children: [
+                                                  Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      RichText(
+                                                          text: TextSpan(
+                                                              children: <TextSpan>[
+                                                            TextSpan(
+                                                                text:
+                                                                    'وضعیت : ',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: CustomColor
+                                                                        .textColor)),
+                                                            TextSpan(
+                                                                text:
+                                                                    'در حال کار',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    color: CustomColor
+                                                                        .textColor)),
+                                                          ])),
+                                                      Spacer(),
+                                                    ],
                                                   ),
-                                                ),
-                                                child: ElevatedButton(
-                                                  onPressed: () {
-                                                    submitArrivalAction();
-                                                  },
-                                                  child: Text('ورود'),
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    primary: Colors.green,
-                                                    onPrimary: Colors.white,
-                                                    shape: OvalBorder(
-                                                        side: BorderSide.none,
-                                                        eccentricity: 0.07),
-                                                    padding:
-                                                        EdgeInsets.symmetric(
-                                                            vertical: 10,
-                                                            horizontal: 20),
-                                                  ),
-                                                ),
-                                              )))
-                                    ]),
-                                  ),
-                                ))
-                        : Expanded(
-                            child: Center(
-                            child: Text('در محل کار حضور ندارید!'),
+                                                  Center(
+                                                      child: Container(
+                                                          width: 100,
+                                                          height: 100,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            shape:
+                                                                BoxShape.circle,
+                                                            border: Border.all(
+                                                              color: Colors.red,
+                                                              width: 1.0,
+                                                            ),
+                                                          ),
+                                                          child: Container(
+                                                            width: 100,
+                                                            height: 100,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              border:
+                                                                  Border.all(
+                                                                color: Colors
+                                                                    .yellow,
+                                                                width: 1.0,
+                                                              ),
+                                                            ),
+                                                            child:
+                                                                ElevatedButton(
+                                                              onPressed: () {
+                                                                submitExitAction();
+                                                              },
+                                                              child:
+                                                                  Text('خروج'),
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                primary:
+                                                                    Colors.red,
+                                                                onPrimary:
+                                                                    Colors
+                                                                        .white,
+                                                                shape: OvalBorder(
+                                                                    side: BorderSide
+                                                                        .none,
+                                                                    eccentricity:
+                                                                        0.07),
+                                                                padding: EdgeInsets
+                                                                    .symmetric(
+                                                                        vertical:
+                                                                            10,
+                                                                        horizontal:
+                                                                            20),
+                                                              ),
+                                                            ),
+                                                          )))
+                                                ]))))
+                                    : Padding(
+                                        padding: EdgeInsets.all(8),
+                                        child: Card(
+                                          color: CustomColor.cardColor,
+                                          elevation: 2,
+                                          margin: EdgeInsets.only(bottom: 20),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(15.0),
+                                            child: Column(children: [
+                                              Row(
+                                                children: [
+                                                  RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                        TextSpan(
+                                                            text: 'وضعیت : ',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: CustomColor
+                                                                    .textColor)),
+                                                        TextSpan(
+                                                            text:
+                                                                'حاضر در محل کار',
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    'irs',
+                                                                fontSize: 12.0,
+                                                                color: CustomColor
+                                                                    .textColor)),
+                                                      ])),
+                                                  Spacer(),
+                                                ],
+                                              ),
+                                              Center(
+                                                  child: Container(
+                                                      width: 100,
+                                                      height: 100,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        border: Border.all(
+                                                          color: Colors.green,
+                                                          width: 1.0,
+                                                        ),
+                                                      ),
+                                                      child: Container(
+                                                        width: 100,
+                                                        height: 100,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          border: Border.all(
+                                                            color:
+                                                                Colors.yellow,
+                                                            width: 1.0,
+                                                          ),
+                                                        ),
+                                                        child: ElevatedButton(
+                                                          onPressed: () {
+                                                            submitArrivalAction();
+                                                          },
+                                                          child: Text('ورود'),
+                                                          style: ElevatedButton
+                                                              .styleFrom(
+                                                            primary:
+                                                                Colors.green,
+                                                            onPrimary:
+                                                                Colors.white,
+                                                            shape: OvalBorder(
+                                                                side: BorderSide
+                                                                    .none,
+                                                                eccentricity:
+                                                                    0.07),
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                    vertical:
+                                                                        10,
+                                                                    horizontal:
+                                                                        20),
+                                                          ),
+                                                        ),
+                                                      )))
+                                            ]),
+                                          ),
+                                        ))
+                                : Expanded(
+                                    child: Center(
+                                    child: Text('در محل کار حضور ندارید!'),
+                                  ))
+                      :Expanded(
+                          child: Center(
+                            child: Text('اینترنت دستگاه متصل نیست!'),
                           )),
-                  ]));
+                          ])),
+                  ))),
+        )));
   }
 }
