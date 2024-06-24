@@ -2,7 +2,6 @@ import 'package:hive/hive.dart';
 
 @HiveType(typeId: 0)
 class Rollcal extends HiveObject {
-
   @HiveField(0)
   String status;
   @HiveField(1)
@@ -16,14 +15,13 @@ class Rollcal extends HiveObject {
   @HiveField(5)
   bool synced;
 
-  Rollcal({
-      required this.status,
+  Rollcal(
+      {required this.status,
       required this.jalali_date,
       required this.time,
       required this.type,
       required this.synced,
-      this.description
-  });
+      required this.description});
 }
 
 class RollcalAdapter extends TypeAdapter<Rollcal> {
@@ -41,8 +39,7 @@ class RollcalAdapter extends TypeAdapter<Rollcal> {
         time: time,
         type: type,
         synced: synced,
-        description: description
-    );
+        description: description);
   }
 
   @override
@@ -55,8 +52,7 @@ class RollcalAdapter extends TypeAdapter<Rollcal> {
     writer.writeString(rollcal.jalali_date);
     writer.writeString(rollcal.time);
     writer.writeString(rollcal.type);
-    writer.writeString(rollcal.description??'');
+    writer.writeString(rollcal.description ?? '');
     writer.writeBool(rollcal.synced);
   }
-
 }
