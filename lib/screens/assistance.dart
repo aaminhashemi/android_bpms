@@ -182,7 +182,6 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
           valueController.text.trim(),
         );
         if (response['status'] == 'successful') {
-         // try {
             final assistanceBox = Hive.box<Assistance>('assistanceBox');
 
             Assistance assistance = Assistance(
@@ -195,10 +194,6 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
               synced: true,
             );
             assistanceBox.add(assistance);
-         /* } catch (e) {
-            CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
-            print(e.toString());
-          }*/
           CustomNotification.show(context, 'موفقیت آمیز',
               'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
         } else if (response['status'] == 'existed') {
@@ -390,8 +385,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
       });
     }
     setState(() {});
-    print(isSynchronized);
-    print('object');
   }
   Future<void> connectionChecker() async {
     var connectivityResult = await Connectivity().checkConnectivity();
@@ -404,13 +397,11 @@ class _AllAssistanceListState extends State<AllAssistances> {
         isConnected = true;
       });
     }
-    print(isConnected);
   }
   void SendListToServer() async {
     setState(() {
       isSyncing = true;
     });
-    ActionService actionService = ActionService('https://afkhambpms.ir/api1');
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save-assistance';
     SaveAssistanceService saveAssistanceService = SaveAssistanceService(apiUrl);
     final List<Assistance>? results =
@@ -426,8 +417,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
             result.record_date,
             result.price,
           );
-          print(response['status']);
-          print("response['status']");
           if (response['status'] == 'successful') {
             Assistance assistance = Assistance(
               level: response['assistance']['level'],
@@ -443,9 +432,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
               syncPercent = syncPercent + percent;
             });
           }else if(response['status']=='existed'){
-            print('hazf');
             await assistanceBox?.delete(result.key);
-            print('dddd');
             setState(() {
               syncPercent = syncPercent + percent;
             });
@@ -455,7 +442,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
           CustomNotification.show(context, 'ناموفق', e.toString(), '');
         }finally{
           allAssistanceList=[];
-          print(assistanceBox);
           for (var res in assistanceBox!.values.toList()) {
             var assistance = {
               'level': res.level,
@@ -466,7 +452,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
               'payment_date': res.payment_date,
             };
             allAssistanceList.add(assistance);
-            print(res.payment_period);
           }
         }
       }
@@ -588,7 +573,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
                                   color: CustomColor.backgroundColor,
                                   fontWeight: FontWeight.bold),
                             ),
-                            //SizedBox(width: 8.0),
                           ],
                         ),
                       ),
@@ -611,9 +595,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
               children: [
                 Text("به روز رسانی"),
                 SizedBox(width: 8),
-                // Add some spacing between the icon and text
                 Icon(Icons.update),
-                // Add the desired icon
               ],
             ),
             onPressed: () {
@@ -855,15 +837,11 @@ class _AllAssistanceListState extends State<AllAssistances> {
                 'Accept': 'application/json',
                 'Content-Type': 'application/x-www-form-urlencoded',
               });
-          print('results?.length');
-
           if (response.statusCode == 200) {
             var temp = json.decode(response.body);
             var check = await box.values.toList();
             if (check.length == 0) {
               for (var ass in temp) {
-                print(ass);
-
                 Assistance assistance = Assistance(
                   level: ass['level'],
                   price: ass['price'],
@@ -874,8 +852,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
                   synced: true,
                 );
                 box.add(assistance);
-                print('payslipBox.length');
-                print(box.length);
               }
             }
             setState(() {
@@ -901,7 +877,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
         }
       } else {
 
-        print(box);
         for (var res in box.values.toList()..sort((a, b) => b.key.compareTo(a.key))) {
           var assistance = {
             'level': res.level,
@@ -912,7 +887,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
             'payment_date': res.payment_date,
           };
           allAssistanceList.add(assistance);
-          print(res.payment_period);
         }
         setState(() {
           isLoading = false;
@@ -920,10 +894,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
 
       }
     } else {
-      print(box);
-      //final x=payslipBox?.values.toList();
-      //print(payslipBox?.length);
-
       for (var res in box.values.toList()..sort((a, b) => b.key.compareTo(a.key))) {
         var assistance = {
           'level': res.level,
@@ -934,7 +904,6 @@ class _AllAssistanceListState extends State<AllAssistances> {
           'payment_date': res.payment_date,
         };
         allAssistanceList.add(assistance);
-        print(res.payment_period);
       }
       setState(() {
         isLoading = false;
