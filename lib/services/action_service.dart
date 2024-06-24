@@ -55,10 +55,28 @@ class ActionService {
     return {'distance': prefs.getString(thresholdDistanceKey) ??'50', 'type': prefs.getString(lastActionTypeKey), 'description': prefs.getString(lastActionDescriptionKey)};
   }
 
-  Future<Map<String, dynamic>> updateManual(
-      String date, String time, String type , String status, String description) async {
+  Future<Map<String, dynamic>> updateManual(String type , String status, String description) async {
     final token = await authService.getToken();
     final response = await http.post(Uri.parse('$baseUrl/update-manual-action'),
+        body: jsonEncode({
+          //'date': date,
+          //'time': time,
+          'type': type,
+          'status': status,
+          'description': description
+        }),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        });
+    print(response.body);
+    return json.decode(response.body);
+  }
+
+  Future<Map<String, dynamic>> updateForgetManual(String date , String time,String type , String status, String? description) async {
+    final token = await authService.getToken();
+    final response = await http.post(Uri.parse('$baseUrl/update-forget-manual-action'),
         body: jsonEncode({
           'date': date,
           'time': time,
@@ -71,7 +89,6 @@ class ActionService {
           'Accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',
         });
-    print(response.body);
     return json.decode(response.body);
   }
 
