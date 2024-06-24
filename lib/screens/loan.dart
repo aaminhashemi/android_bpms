@@ -62,9 +62,6 @@ class _LoanCreateState extends State<LoanCreate> {
     if (connectivityResult == ConnectivityResult.none) {
       final loanBox = Hive.box<Loan>('loanBox');
       if(dateController.text.trim().length>0 && valueController.text.trim().length>1 && repaymentCountController.text.trim().length>0 && reasonController.text.trim().length>0){
-
-
-
       try{
         Loan loan=Loan(
             jalali_request_date: dateController.text.trim(),
@@ -376,12 +373,12 @@ class _LoanCreateState extends State<LoanCreate> {
     return ElevatedButton(
       onPressed: isLoading ? null : save,
       child: isLoading
-          ? CircularProgressIndicator() // Show loading indicator
+          ? CircularProgressIndicator()
           : Text(Consts.save, style: TextStyle(color: Colors.white)),
       style: ElevatedButton.styleFrom(
         shape: RoundedRectangleBorder(
           borderRadius:
-              BorderRadius.circular(10.0), // Adjust the radius as needed
+              BorderRadius.circular(10.0),
         ),
         minimumSize: const Size(double.infinity, 48),
         primary: CustomColor.successColor,
@@ -436,7 +433,6 @@ class _AllLoanListState extends State<AllLoans> {
     setState(() {
       isSyncing = true;
     });
-    ActionService actionService = ActionService('https://afkhambpms.ir/api1');
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save-loan';
     LoanService loanService = LoanService(apiUrl);
     final List<Loan>? results =
@@ -651,9 +647,7 @@ class _AllLoanListState extends State<AllLoans> {
               children: [
                 Text("به روز رسانی"),
                 SizedBox(width: 8),
-                // Add some spacing between the icon and text
                 Icon(Icons.update),
-                // Add the desired icon
               ],
             ),
             onPressed: () {
@@ -919,7 +913,6 @@ class _AllLoanListState extends State<AllLoans> {
           .toList();
       if (results?.length == 0) {
         await box.clear();
-
         try {
           final response = await http.get(
               Uri.parse('https://afkhambpms.ir/api1/personnels/get-loan'),
