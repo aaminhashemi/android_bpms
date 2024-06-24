@@ -62,18 +62,15 @@ class _MyHomePageState extends State<MyPathPage> {
   void _toggleTracking() {
     setState(() {
       if (isTracking) {
-        // Stop tracking
         isTracking = false;
         lastPosition = null;
       } else {
-        // Start tracking
         isTracking = true;
         lastPosition = null;
 
         Geolocator.getPositionStream(
           desiredAccuracy: LocationAccuracy.best,
-          distanceFilter:
-              1, // Set a minimum distance change (in meters) to trigger updates
+          distanceFilter: 1,
         ).listen((Position position) {
           if (lastPosition != null) {
             double newDistance = Geolocator.distanceBetween(
@@ -84,12 +81,9 @@ class _MyHomePageState extends State<MyPathPage> {
             );
 
             setState(() {
-              // Update the total distance
               totalDistance += newDistance;
             });
           }
-
-          // Update the last position
           lastPosition = position;
         });
       }
