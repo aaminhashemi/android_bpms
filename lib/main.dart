@@ -3,7 +3,6 @@ import 'package:afkham/models/leaving.dart';
 import 'package:afkham/models/loan.dart';
 import 'package:afkham/models/mission.dart';
 import 'package:afkham/models/payslip.dart';
-import 'package:afkham/models/rollcal.dart';
 import 'package:hive_flutter/adapters.dart';
 import '../screens/otp_login.dart';
 import '../screens/payslip.dart';
@@ -20,12 +19,13 @@ import '../screens/login.dart';
 import '../screens/mission_request.dart';
 import '../screens/home.dart';
 import '../utils/custom_color.dart';
+import 'models/attendance.dart';
 import 'models/coordinate.dart';
 
 
 Future<void> main() async {
   await Hive.initFlutter();
-  Hive.registerAdapter(RollcalAdapter());
+  Hive.registerAdapter(AttendanceAdapter());
   Hive.registerAdapter(CoordinateAdapter());
   Hive.registerAdapter(PayslipAdapter());
   Hive.registerAdapter(AssistanceAdapter());
@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => WelcomeScreen(),
         '/login': (context) => LoginScreen(),
         '/login-otp': (context) => OtpLoginScreen(),
-        '/main': (context) => Home(),
+        '/main': (context) => SwipeToRefreshExample(),
         '/assistance': (context) => AllAssistances(),
         '/loan': (context) => AllLoans(),
         '/leave-request': (context) => AllLeaves(),
