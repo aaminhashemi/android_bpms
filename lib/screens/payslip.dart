@@ -44,7 +44,7 @@ class _PayslipListState extends State<PayslipList> {
   bool isConnected = false;
   List<dynamic> payslipList = [];
   Box<Payslip>? payslipBox;
-  List<Payslip>? results=[];
+  List<Payslip>? results = [];
 
   @override
   void initState() {
@@ -53,6 +53,7 @@ class _PayslipListState extends State<PayslipList> {
     initBox();
     connectionChecker();
   }
+
   Future<void> connectionChecker() async {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
@@ -65,11 +66,10 @@ class _PayslipListState extends State<PayslipList> {
       });
     }
   }
-  Future<void> initBox() async {
-    payslipBox=await Hive.openBox('payslipBox');
-    setState(() {
 
-    });
+  Future<void> initBox() async {
+    payslipBox = await Hive.openBox('payslipBox');
+    setState(() {});
   }
 
   Future<void> fetchData() async {
@@ -87,7 +87,7 @@ class _PayslipListState extends State<PayslipList> {
     } else {
       authService.logout();
     }*/
-    payslipBox=await Hive.openBox('payslipBox');
+    payslipBox = await Hive.openBox('payslipBox');
 
     var connectivityResult = await Connectivity().checkConnectivity();
     final box = Hive.box<Payslip>('payslipBox');
@@ -102,22 +102,23 @@ class _PayslipListState extends State<PayslipList> {
         });
 
         if (response.statusCode == 200) {
-          var temp=json.decode(response.body);
-          for(var pay in temp){
-            var check=await box.values.where((data) => data.id == pay['id'].toInt()).toList();
-            if(check.length==0){
-              Payslip payslip=Payslip(
-                id:pay['id'].toInt(),
-                payment_period:pay['payment_period'],
-                price:pay['price'],
-                level:pay['level'],
-                payment_date:pay['payment_date'],
+          var temp = json.decode(response.body);
+          for (var pay in temp) {
+            var check = await box.values
+                .where((data) => data.id == pay['id'].toInt())
+                .toList();
+            if (check.length == 0) {
+              Payslip payslip = Payslip(
+                id: pay['id'].toInt(),
+                payment_period: pay['payment_period'],
+                price: pay['price'],
+                level: pay['level'],
+                payment_date: pay['payment_date'],
               );
               box.add(payslip);
               print('payslipBox.length');
               print(box.length);
             }
-
           }
           setState(() {
             isLoading = false;
@@ -130,13 +131,11 @@ class _PayslipListState extends State<PayslipList> {
           throw Exception(Exception_consts.dataFetchError);
         }
       } catch (e) {
-        CustomNotification.show(context, 'ناموفق',
-            e.toString(),
-            'payslip');
+        CustomNotification.show(context, 'ناموفق', 'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', 'payslip');
       }
-    }else{
-      for(var res in box.values.toList()){
-        var payslip= {
+    } else {
+      for (var res in box.values.toList()) {
+        var payslip = {
           'id': res.id.toInt(),
           'payment_period': res.payment_period,
           'price': res.price,
@@ -146,9 +145,8 @@ class _PayslipListState extends State<PayslipList> {
         payslipList.add(payslip);
       }
       setState(() {
-        isLoading=false;
+        isLoading = false;
       });
-
     }
   }
 
@@ -171,7 +169,8 @@ class _PayslipListState extends State<PayslipList> {
               style: TextStyle(color: CustomColor.textColor)),
           actions: [
             IconButton(
-              icon: Icon(Icons.logout,color: CustomColor.drawerBackgroundColor),
+              icon:
+                  Icon(Icons.logout, color: CustomColor.drawerBackgroundColor),
               onPressed: () => _logout(context),
             ),
           ],
@@ -186,11 +185,11 @@ class _PayslipListState extends State<PayslipList> {
                     padding: const EdgeInsets.all(6.0),
                     child: Center(
                       child: Text(
-                                'فیش حقوقی یافت نشد.',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                ),
-                              ),
+                        'فیش حقوقی یافت نشد.',
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
                     ))
                 : ListView.builder(
                     itemCount: payslipList.length,
@@ -205,102 +204,115 @@ class _PayslipListState extends State<PayslipList> {
                         margin: EdgeInsets.symmetric(
                             horizontal: 16.0, vertical: 8.0),
                         child: ListTile(
-                          title:
-                          RichText(
-                            text: TextSpan(children: <TextSpan>[
-                              TextSpan(
-                                text: '${Consts.period}  :',
-                                style: TextStyle(
-                                    fontFamily: 'irs',
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: CustomColor.textColor),
-                              ),
-                              TextSpan(
-                                text:
-                                ' ${payslip['payment_period']} ',
-                                style: TextStyle(
-                                    fontFamily: 'irs',
-                                    fontSize: 14.0,
-                                    fontWeight: FontWeight.normal,
-                                    color: CustomColor.textColor),
-                              ),
-                            ]),
-                          )
-                          ,
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              RichText(
-                                text: TextSpan(children: <TextSpan>[
-                                  TextSpan(
-                                    text: '${Consts.value}  :',
-                                    style: TextStyle(
-                                        fontFamily: 'irs',
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: CustomColor.textColor),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                    ' ${payslip['price']}  ${Consts.priceUnit} ',
-                                    style: TextStyle(
-                                        fontFamily: 'irs',
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.normal,
-                                        color: CustomColor.textColor),
-                                  ),
-                                ]),
-                              ),
-
-                              SizedBox(height: 4),
-                              RichText(
-                                text: TextSpan(children: <TextSpan>[
-                                  TextSpan(
-                                    text: '${Consts.status}  :',
-                                    style: TextStyle(
-                                        fontFamily: 'irs',
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: CustomColor.textColor),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                    ' ${payslip['level']}',
-                                    style: TextStyle(
-                                        fontFamily: 'irs',
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.normal,
-                                        color: CustomColor.textColor),
-                                  ),
-                                ]),
-                              ),
-
-                              SizedBox(height: 4),
-                              RichText(
-                                text: TextSpan(children: <TextSpan>[
-                                  TextSpan(
-                                    text: '${Consts.paymentDate}  :',
-                                    style: TextStyle(
-                                        fontFamily: 'irs',
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.bold,
-                                        color: CustomColor.textColor),
-                                  ),
-                                  TextSpan(
-                                    text:
-                                    ' ${payslip['payment_date']}',
-                                    style: TextStyle(
-                                        fontFamily: 'irs',
-                                        fontSize: 14.0,
-                                        fontWeight: FontWeight.normal,
-                                        color: CustomColor.textColor),
-                                  ),
-                                ]),
-                              ),
-                            ],
-                          ),
-                          trailing: Icon(Icons.arrow_forward,color: CustomColor.textColor,),
+                            title: RichText(
+                              text: TextSpan(children: <TextSpan>[
+                                TextSpan(
+                                  text: '${Consts.period}  :',
+                                  style: TextStyle(
+                                      fontFamily: 'irs',
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.bold,
+                                      color: CustomColor.textColor),
+                                ),
+                                TextSpan(
+                                  text: ' ${payslip['payment_period']} ',
+                                  style: TextStyle(
+                                      fontFamily: 'irs',
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.normal,
+                                      color: CustomColor.textColor),
+                                ),
+                              ]),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 4),
+                                RichText(
+                                  text: TextSpan(children: <TextSpan>[
+                                    TextSpan(
+                                      text: '${Consts.value}  :',
+                                      style: TextStyle(
+                                          fontFamily: 'irs',
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: CustomColor.textColor),
+                                    ),
+                                    TextSpan(
+                                      text:
+                                          ' ${payslip['price']}  ${Consts.priceUnit} ',
+                                      style: TextStyle(
+                                          fontFamily: 'irs',
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.normal,
+                                          color: CustomColor.textColor),
+                                    ),
+                                  ]),
+                                ),
+                                /*SizedBox(height: 4),
+                                RichText(
+                                  text: TextSpan(children: <TextSpan>[
+                                    TextSpan(
+                                      text: '${Consts.status}  :',
+                                      style: TextStyle(
+                                          fontFamily: 'irs',
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: CustomColor.textColor),
+                                    ),
+                                    TextSpan(
+                                      text: ' ${payslip['level']}',
+                                      style: TextStyle(
+                                          fontFamily: 'irs',
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.normal,
+                                          color: CustomColor.textColor),
+                                    ),
+                                  ]),
+                                ),*/
+                                SizedBox(height: 4),
+                                RichText(
+                                  text: TextSpan(children: <TextSpan>[
+                                    TextSpan(
+                                      text: '${Consts.paymentDate}  :',
+                                      style: TextStyle(
+                                          fontFamily: 'irs',
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: CustomColor.textColor),
+                                    ),
+                                    TextSpan(
+                                      text: ' ${payslip['payment_date']}',
+                                      style: TextStyle(
+                                          fontFamily: 'irs',
+                                          fontSize: 14.0,
+                                          fontWeight: FontWeight.normal,
+                                          color: CustomColor.textColor),
+                                    ),
+                                  ]),
+                                ),
+                              ],
+                            ),
+                            trailing: Icon(
+                              Icons.arrow_forward,
+                              color: CustomColor.textColor,
+                            ),
+                            onTap: () {
+                              (isConnected)
+                                  ? Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            PayslipDetails(payslip),
+                                      ),
+                                    )
+                                  : CustomNotification.show(
+                                      context,
+                                      'ناموفق',
+                                      'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
+                                      '');
+                            }),
+                        /*Icon(Icons.arrow_forward,color: CustomColor.textColor,),
                           onTap: () {
                             (isConnected)?
                             Navigator.push(
@@ -313,8 +325,7 @@ class _PayslipListState extends State<PayslipList> {
                                 'ناموفق',
                                 'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
                                 '');
-                          },
-                        ),
+                          },*/
                       );
                     },
                   ),
@@ -324,7 +335,6 @@ class _PayslipListState extends State<PayslipList> {
 }
 
 class PayslipDetails extends StatelessWidget {
-
   final dynamic payslip;
 
   PayslipDetails(this.payslip);
@@ -368,8 +378,7 @@ class PayslipDetails extends StatelessWidget {
               ),
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      10.0),
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
                 primary: CustomColor.test1,
               ),

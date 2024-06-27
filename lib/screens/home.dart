@@ -393,7 +393,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
           });
         }
       } catch (e) {
-        CustomNotification.show(context, 'ناموفق', e.toString(), '');
+        CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } else {
       CustomNotification.show(
@@ -468,7 +468,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
           });
         }
       } catch (e) {
-        CustomNotification.show(context, 'ناموفق', e.toString(), '');
+        CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } else {
       CustomNotification.show(

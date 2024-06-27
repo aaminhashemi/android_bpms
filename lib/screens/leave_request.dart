@@ -125,7 +125,6 @@ class _AllLeaveListState extends State<AllLeaves> {
               leavingBox?.put(result.key, leaving);
             }catch(e){
               print('err');
-              print(e.toString());
             }
             setState(() {
               syncPercent = syncPercent + percent;
@@ -133,7 +132,7 @@ class _AllLeaveListState extends State<AllLeaves> {
           }
 
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', e.toString(), '');
+          CustomNotification.show(context, 'ناموفق',  'در ثبت درخواست مشکلی وجود دارد.', '');
         }finally{
           allLeavelList=[];
           print(leavingBox);
@@ -1288,28 +1287,24 @@ class _LeaveRequestState extends State<LeaveRequest> {
             setState(() {
               isLoading = false;
             });
-            CustomNotification.show(context, 'موفقیت آمیز',
-                'درخواست مرخصی با موفقیت ثبت شد.', '/leave-request');
+            CustomNotification.show(context, 'موفقیت آمیز', 'درخواست مرخصی با موفقیت ثبت شد.', '/leave-request');
           } catch (e) {
             setState(() {
               isLoading = false;
             });
-            CustomNotification.show(context, 'خطا',
-                'در ثبت درخواست مشکلی وجود دارد.', '/');
+            CustomNotification.show(context, 'خطا', 'در ثبت درخواست مشکلی وجود دارد.', '/');
           }
         } else {
           setState(() {
             isLoading = false;
           });
-          CustomNotification.show(context, 'خطا',
-              'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+          CustomNotification.show(context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
         }
       }else{
         setState(() {
           isLoading = false;
         });
-        CustomNotification.show(context, 'خطا',
-            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+        CustomNotification.show(context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
       }}else{
       SaveLeaveRequestService saveLeaveRequestService =
       SaveLeaveRequestService(apiUrl);

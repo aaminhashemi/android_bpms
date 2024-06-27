@@ -439,7 +439,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
           }
 
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', e.toString(), '');
+          CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
         }finally{
           allAssistanceList=[];
           for (var res in assistanceBox!.values.toList()) {

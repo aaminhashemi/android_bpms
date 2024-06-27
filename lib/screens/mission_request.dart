@@ -951,7 +951,6 @@ class _AllMissionsListState extends State<AllMissions> {
               missionBox?.put(result.key, mission);
             }catch(e){
               print('err');
-              print(e.toString());
             }
             setState(() {
               syncPercent = syncPercent + percent;
@@ -959,7 +958,7 @@ class _AllMissionsListState extends State<AllMissions> {
           }
 
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', e.toString(), '');
+          CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
         }finally{
           allMissionsList=[];
           print(missionBox);

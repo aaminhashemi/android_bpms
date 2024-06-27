@@ -478,7 +478,7 @@ class _AllLoanListState extends State<AllLoans> {
           }
 
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', e.toString(), '');
+          CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
         }finally{
           allLoanlList=[];
           print(loanBox);
@@ -742,10 +742,30 @@ class _AllLoanListState extends State<AllLoans> {
                                 ]),
                               ),
                               trailing: InkWell(
-                                child: Container(
+                                child: (loan['status'] == 'accepted')?Container(
                                   padding: EdgeInsets.all(8.0),
                                   decoration: BoxDecoration(
-                                    color: CustomColor.primaryColor,
+                                    color: CustomColor.successColor,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Text(
+                                    '${loan['level']}',
+                                    style: TextStyle(),
+                                  ),
+                                ):(loan['status'] == 'recorded')?Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
+                                    color: CustomColor.cardColor,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  child: Text(
+                                    '${loan['level']}',
+                                    style: TextStyle(),
+                                  ),
+                                ):Container(
+                                  padding: EdgeInsets.all(8.0),
+                                  decoration: BoxDecoration(
+                                    color: CustomColor.dangerColor,
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
                                   child: Text(
@@ -931,13 +951,13 @@ class _AllLoanListState extends State<AllLoans> {
                 Loan loan = Loan(
                   jalali_request_date: item['jalali_request_date'],
                   suggested_value: item['formatted_requested_value'],
-                  formatted_requested_value: item['formatted_requested_value'],
+                  formatted_requested_value: item['formatted_requested_value'].toString(),
                   level: item['level'],
                   status: item['status'],
-                  suggested_repayment_count: item['repayment_count'],
-                  repayment_count: item['repayment_count'],
-                  formatted_repayment_value: item['formatted_repayment_value'],
-                  formatted_residue_value: item['formatted_residue_value'],
+                  suggested_repayment_count: item['repayment_count'].toString(),
+                  repayment_count: item['repayment_count'].toString(),
+                  formatted_repayment_value: item['formatted_repayment_value'].toString(),
+                  formatted_residue_value: item['formatted_residue_value'].toString(),
                   description: item['description'],
                   synced: true,
                 );
@@ -958,7 +978,7 @@ class _AllLoanListState extends State<AllLoans> {
           }
         } catch (e) {
           CustomNotification.show(context, 'ناموفق',
-              e.toString()/*'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.'*/,
+              'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
               'loan');
         } finally {
           setState(() {

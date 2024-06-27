@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:afkham/models/attendance.dart';
@@ -37,10 +38,13 @@ class _AllListState extends State<AllList> {
   bool isConnected = false;
   bool isSyncing = false;
   double syncPercent = 0;
+  List<Attendance>? results;
   Box<Attendance>? attendanceBox;
   List<Attendance> dataList = [];
   bool isSynchronized = true;
-
+  List<dynamic> allAttendanceList = [];
+  late List<bool> _isExpandedList =
+  List.generate(allAttendanceList.length, (index) => false);
   Future<void> initBox() async {
     attendanceBox = await Hive.openBox('attendanceBox');
     dataList = attendanceBox!.values.toList();
@@ -78,6 +82,7 @@ class _AllListState extends State<AllList> {
     super.initState();
     connectionChecker();
     initBox();
+    fetchData(context);
   }
 
   void SendListToServer() async {
@@ -119,7 +124,7 @@ class _AllListState extends State<AllList> {
             CustomNotification.show(context, 'ناموفق', actionResponse['status'], '');
           }
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', e.toString(), '');
+          CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
         }
       }
       await Future.delayed(Duration(seconds: 1));
@@ -264,7 +269,7 @@ class _AllListState extends State<AllList> {
                   child: Center(
                     child: CircularProgressIndicator(),
                   ))
-                  : (dataList.length == 0)
+                  : (allAttendanceList.isEmpty)
                   ? Expanded(
                   child: Center(
                     child: Text(
@@ -281,9 +286,9 @@ class _AllListState extends State<AllList> {
                           child: ListView.builder(
                             shrinkWrap: true,
                             physics: NeverScrollableScrollPhysics(),
-                            itemCount: dataList.length,
+                            itemCount: allAttendanceList.length,
                             itemBuilder: (context, index) {
-                              var item = dataList[index];
+                              var attendance = allAttendanceList[index];
                               return Card(
                                 shape: RoundedRectangleBorder(
                                   borderRadius:
@@ -313,7 +318,7 @@ class _AllListState extends State<AllList> {
                                             CustomColor.textColor),
                                       ),
                                       TextSpan(
-                                        text: ' ${item.jalali_date}  ',
+                                        text: ' ${attendance['jalali_date']} ',
                                         style: TextStyle(
                                             fontFamily: 'irs',
                                             fontSize: 12.0,
@@ -336,7 +341,7 @@ class _AllListState extends State<AllList> {
                                             CustomColor.textColor),
                                       ),
                                       TextSpan(
-                                        text: (item.type == 'systemic')
+                                        text: (attendance['type'] == 'systemic')
                                             ? 'سیستمی'
                                             : 'دستی',
                                         style: TextStyle(
@@ -350,8 +355,8 @@ class _AllListState extends State<AllList> {
                                     ]),
                                   ),
                                   trailing: InkWell(
-                                    child: (item.status == 'leaving' ||
-                                        item.status == 'mission')
+                                    child: (attendance['status'] == 'leaving' ||
+                                        attendance['status'] == 'mission')
                                         ? Container(
                                       padding:
                                       EdgeInsets.all(8.0),
@@ -363,7 +368,7 @@ class _AllListState extends State<AllList> {
                                             10.0),
                                       ),
 
-                                      child: (item.status ==
+                                      child: (attendance['status'] ==
                                           'leaving')
                                           ? Text(
                                         'مرخصی',
@@ -372,7 +377,7 @@ class _AllListState extends State<AllList> {
                                         'ماموریت',
                                       ),
                                     )
-                                        : (item.status == 'arrival')
+                                        : (attendance['status'] == 'arrival')
                                         ? Container(
                                       padding:
                                       EdgeInsets.all(8.0),
@@ -432,7 +437,7 @@ class _AllListState extends State<AllList> {
                                                         ),
                                                         TextSpan(
                                                           text:
-                                                          ' ${item.time}  ',
+                                                          ' ${attendance['time']}  ',
                                                           style: TextStyle(
                                                               fontFamily:
                                                               'irs',
@@ -448,7 +453,7 @@ class _AllListState extends State<AllList> {
                                               Spacer()
                                             ],
                                           ),
-                                          if (item.description != null)
+                                          if (attendance['description'] != null)
                                             Row(
                                               mainAxisAlignment:
                                               MainAxisAlignment
@@ -474,7 +479,7 @@ class _AllListState extends State<AllList> {
                                                               ),
                                                               TextSpan(
                                                                 text:
-                                                                ' ${item.description}  ',
+                                                                ' ${attendance['description']}  ',
                                                                 style: TextStyle(
                                                                     fontFamily:
                                                                     'irs',
@@ -508,36 +513,95 @@ class _AllListState extends State<AllList> {
     });
     final AuthService authService = AuthService('https://afkhambpms.ir/api1');
     final token = await authService.getToken();
+    attendanceBox = await Hive.openBox('attendanceBox');
+    final box = Hive.box<Attendance>('attendanceBox');
+
     if (connectivityResult != ConnectivityResult.none) {
-      try {
-        final response = await http.get(
-            Uri.parse('https://afkhambpms.ir/api1/personnels/get-action'),
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Accept': 'application/json',
-              'Content-Type': 'application/x-www-form-urlencoded',
+      results = await attendanceBox?.values
+          .where((data) => data.synced == false)
+          .toList();
+      if (results?.length == 0) {
+        await box.clear();
+        try {
+          final response = await http.get(
+              Uri.parse('https://afkhambpms.ir/api1/personnels/get-action'),
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
+              });
+          if (response.statusCode == 200) {
+            var temp = json.decode(response.body);
+            var check = await box.values.toList();
+            if (check.length == 0) {
+              for (var item in temp) {
+                Attendance attendance = Attendance(
+                  jalali_date: item['jalali_date'].toString(),
+                  status: item['status'].toString(),
+                  time: item['time'].toString(),
+                  type: item['type'].toString(),
+                  description: item['description'].toString(),
+                  synced: true,
+                );
+                box.add(attendance);
+                print('payslipBox.length');
+                print(box.length);
+              }
+            }
+            setState(() {
+              allAttendanceList = json.decode(response.body);
+              isLoading = false;
             });
-        if (response.statusCode == 200) {
-          setState(() {});
-        } else {
-          throw Exception('خطا در دریافت داده ها');
+          } else {
+            throw Exception('خطا در دریافت داده ها');
+          }
+        } catch (e) {
+          CustomNotification.show(
+              context,
+              'ناموفق',
+              'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
+              'loc');
+        } finally {
+          setState(() {
+            isLoading = false;
+          });
         }
-      } catch (e) {
-        CustomNotification.show(
-            context,
-            'ناموفق',
-            'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.',
-            'loc');
-        print(e.toString());
-      } finally {
+      }else {
+        print(box);
+        for (var res in box.values.toList()
+          ..sort((a, b) => b.key.compareTo(a.key))) {
+          var loan = {
+            'status': res.status,
+            'jalali_date': res.jalali_date,
+            'time': res.time,
+            'type': res.type,
+            'description': res.description,
+          };
+          allAttendanceList.add(loan);
+          print(res.status);
+        }
         setState(() {
           isLoading = false;
         });
+
       }
     } else {
+      print(box);
+      for (var res in box.values.toList()
+        ..sort((a, b) => b.key.compareTo(a.key))) {
+        var loan = {
+          'status': res.status,
+          'jalali_date': res.jalali_date,
+          'time': res.time,
+          'type': res.type,
+          'description': res.description,
+        };
+        allAttendanceList.add(loan);
+        print(res.status);
+      }
       setState(() {
         isLoading = false;
-      });
+      });;
     }
   }
 }
@@ -998,8 +1062,10 @@ class _MyHomePageState extends State<MyHomePage> {
       default:
         actionType = 'choose_type';
     }
+    List<String> validTypes = ['arrival', 'leaving', 'mission', 'exit'];
 
-    if (isConnected) {
+    if(dateController.text.trim().length > 0 && timeController.text.trim().length>0 && descriptionController.text.trim().length>0 && validTypes.contains(type) ){
+      if (isConnected) {
         try {
           final attendanceBox = Hive.box<Attendance>('attendanceBox');
           final actionResponse = await actionService.updateForgetManual(
@@ -1021,27 +1087,34 @@ class _MyHomePageState extends State<MyHomePage> {
             attendanceBox.add(attendance);
             CustomNotification.show(context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/loc');
           }else{
-            CustomNotification.show(context, 'ناموفق', actionResponse['status'], '/loc');
+            CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '/loc');
           }
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق',e.toString(), '');
+          CustomNotification.show(context, 'ناموفق','در ثبت درخواست مشکلی وجود دارد.', '');
         }
 
-    } else {
-      Attendance attendance = Attendance(
-          status: actionType,
-          jalali_date: dateController.text.trim(),
-          time: StandardNumberCreator.convert(timeController.text.trim()),
-          type: 'non-systemic',
-          synced: false,
-          description: descriptionController.text.trim());
+      } else {
+        Attendance attendance = Attendance(
+            status: actionType,
+            jalali_date: dateController.text.trim(),
+            time: StandardNumberCreator.convert(timeController.text.trim()),
+            type: 'non-systemic',
+            synced: false,
+            description: descriptionController.text.trim());
 
-      box.add(attendance);
-      CustomNotification.show(context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/loc');
+        box.add(attendance);
+        CustomNotification.show(context, 'موفقیت آمیز', 'درخواست با موفقیت ثبت شد.', '/loc');
+      }
+      setState(() {
+        isLoading = false;
+      });
+    }else{
+      setState(() {
+        isLoading = false;
+      });
+      CustomNotification.show(context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
     }
-    setState(() {
-      isLoading = false;
-    });
+
 
   }
 }

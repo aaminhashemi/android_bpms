@@ -55,4 +55,5 @@ class AttendanceAdapter extends TypeAdapter<Attendance> {
     writer.writeString(attendance.description ?? '');
     writer.writeBool(attendance.synced);
   }
+
 }
