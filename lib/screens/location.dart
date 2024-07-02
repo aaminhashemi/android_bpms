@@ -1064,7 +1064,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     List<String> validTypes = ['arrival', 'leaving', 'mission', 'exit'];
 
-    if(dateController.text.trim().length > 0 && timeController.text.trim().length>0 && descriptionController.text.trim().length>0 && validTypes.contains(type) ){
+    if(dateController.text.trim().length > 0 && timeController.text.trim().length>0 && descriptionController.text.trim().length>0 && validTypes.contains(actionType) ){
       if (isConnected) {
         try {
           final attendanceBox = Hive.box<Attendance>('attendanceBox');
