@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shamsi_date/shamsi_date.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
 
@@ -7,6 +8,8 @@ class ActionService {
   final String baseUrl;
   //static const String distanceKey = 'threshold_distance';
   static const String lastActionTypeKey = 'last_action_type';
+  static const String lastActionTime = 'last_action_time';
+  static const String lastActionDate = 'last_action_date';
   static const String lastActionDescriptionKey = 'last_action_description';
   static const String thresholdDistanceKey = 'threshold_distance';
 
@@ -52,7 +55,7 @@ class ActionService {
 
   Future<Map<String, dynamic>> getLastActionInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    return {'distance': prefs.getString(thresholdDistanceKey) ??'50', 'type': prefs.getString(lastActionTypeKey), 'description': prefs.getString(lastActionDescriptionKey)};
+    return {'distance': prefs.getString(thresholdDistanceKey) ??'50', 'type': prefs.getString(lastActionTypeKey), 'description': prefs.getString(lastActionDescriptionKey), 'date': prefs.getString(lastActionDate)??'', 'time': prefs.getString(lastActionTime)??''};
   }
 
   Future<Map<String, dynamic>> updateManual(String type , String status, String description) async {
