@@ -749,9 +749,7 @@ class _AllLoanListState extends State<AllLoans> {
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
                                   child: Text(
-                                    '${loan['level']}',
-                                    style: TextStyle(),
-                                  ),
+                                    '${loan['level']}'),
                                 ):(loan['status'] == 'recorded')?Container(
                                   padding: EdgeInsets.all(8.0),
                                   decoration: BoxDecoration(
@@ -759,9 +757,7 @@ class _AllLoanListState extends State<AllLoans> {
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
                                   child: Text(
-                                    '${loan['level']}',
-                                    style: TextStyle(),
-                                  ),
+                                    '${loan['level']}'),
                                 ):Container(
                                   padding: EdgeInsets.all(8.0),
                                   decoration: BoxDecoration(
@@ -769,9 +765,7 @@ class _AllLoanListState extends State<AllLoans> {
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
                                   child: Text(
-                                    '${loan['level']}',
-                                    style: TextStyle(),
-                                  ),
+                                    '${loan['level']}'),
                                 ),
                               ),
                               children: <Widget>[
