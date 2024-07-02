@@ -101,7 +101,7 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
     SaveAssistanceService saveAssistanceService = SaveAssistanceService(apiUrl);
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
-      final assistanceBox = Hive.box<Assistance>('assistanceBox');
+      final assistanceBox = Hive.box<Assistances>('assistanceBox1');
       if(dateController.text.trim().length>0 && valueController.text.trim().length>1 ){
         try{
         List<String> parts = dateController.text.trim().split('/');
@@ -145,7 +145,7 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
           break;
       }
 
-      Assistance assistance = Assistance(
+      Assistances assistance = Assistances(
         level: 'درخواست',
         price: valueController.text.trim(),
         payment_period: '${monthName} ${parts[0]}',
@@ -153,6 +153,7 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
         deposit_date: null,
         payment_date: null,
         synced: false,
+        status: 'recorded',
       );
       assistanceBox.add(assistance);
       setState(() {
@@ -182,9 +183,9 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
           valueController.text.trim(),
         );
         if (response['status'] == 'successful') {
-            final assistanceBox = Hive.box<Assistance>('assistanceBox');
+            final assistanceBox = Hive.box<Assistances>('assistancesBox');
 
-            Assistance assistance = Assistance(
+            Assistances assistance = Assistances(
               level: response['assistance']['level'],
               price: valueController.text.trim(),
               payment_period: response['assistance']['payment_period'],
@@ -192,6 +193,7 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
               deposit_date: null,
               payment_date: null,
               synced: true,
+              status: 'recorded',
             );
             assistanceBox.add(assistance);
           CustomNotification.show(context, 'موفقیت آمیز',
@@ -368,16 +370,16 @@ class AllAssistances extends StatefulWidget {
 class _AllAssistanceListState extends State<AllAssistances> {
   bool isLoading = true;
   List<dynamic> allAssistanceList = [];
-  Box<Assistance>? assistanceBox;
-  List<Assistance>? results;
+  Box<Assistances>? assistanceBox;
+  List<Assistances>? results;
   bool isSynchronized = true;
   bool isSyncing = false;
   bool isConnected = false;
   double syncPercent = 0;
 
   Future<void> initBox() async {
-    assistanceBox = await Hive.openBox('assistanceBox');
-    final List<Assistance>? results =
+    assistanceBox = await Hive.openBox('assistanceBox1');
+    final List<Assistances>? results =
     assistanceBox?.values.where((data) => data.synced == false).toList();
     if (results!.length > 0) {
       setState(() {
@@ -404,7 +406,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
     });
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save-assistance';
     SaveAssistanceService saveAssistanceService = SaveAssistanceService(apiUrl);
-    final List<Assistance>? results =
+    final List<Assistances>? results =
     assistanceBox?.values.where((data) => data.synced == false).toList();
     double percent = 0;
     if (results!.isNotEmpty) {
@@ -418,7 +420,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
             result.price,
           );
           if (response['status'] == 'successful') {
-            Assistance assistance = Assistance(
+            Assistances assistance = Assistances(
               level: response['assistance']['level'],
               price: result.price,
               payment_period: response['assistance']['payment_period'],
@@ -426,6 +428,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
               deposit_date: null,
               payment_date: null,
               synced: true,
+              status: response['assistance']['status'],
             );
             assistanceBox?.put(result.key, assistance);
             setState(() {
@@ -693,7 +696,18 @@ class _AllAssistanceListState extends State<AllAssistances> {
                                         ]),
                                       ),
                                       trailing: InkWell(
-                                        child: Container(
+                                        child:
+                                        (assistance['status']=='paid'||assistance['status']=='accepted'||assistance['status']=='completed')?
+                                        Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          decoration: BoxDecoration(
+                                            color: CustomColor.successColor,
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
+                                          ),
+                                          child: Text(
+                                            '${assistance['level']}'),
+                                        ):(assistance['status']=='recorded')?Container(
                                           padding: EdgeInsets.all(8.0),
                                           decoration: BoxDecoration(
                                             color: CustomColor.cardColor,
@@ -701,10 +715,16 @@ class _AllAssistanceListState extends State<AllAssistances> {
                                                 BorderRadius.circular(10.0),
                                           ),
                                           child: Text(
-                                            '${assistance['level']}',
-                                            style: TextStyle(
-                                                color: CustomColor.textColor),
+                                            '${assistance['level']}'),
+                                        ):Container(
+                                          padding: EdgeInsets.all(8.0),
+                                          decoration: BoxDecoration(
+                                            color: CustomColor.dangerColor,
+                                            borderRadius:
+                                                BorderRadius.circular(10.0),
                                           ),
+                                          child: Text(
+                                            '${assistance['level']}'),
                                         ),
                                       ),
                                       children: <Widget>[
@@ -820,9 +840,9 @@ class _AllAssistanceListState extends State<AllAssistances> {
     setState(() {
       isLoading = true;
     });
-    assistanceBox = await Hive.openBox('assistanceBox');
+    assistanceBox = await Hive.openBox('assistanceBox1');
     var connectivityResult = await Connectivity().checkConnectivity();
-    final box = Hive.box<Assistance>('assistanceBox');
+    final box = Hive.box<Assistances>('assistanceBox1');
     if (connectivityResult != ConnectivityResult.none) {
       results = await assistanceBox?.values
           .where((data) => data.synced == false)
@@ -842,16 +862,18 @@ class _AllAssistanceListState extends State<AllAssistances> {
             var check = await box.values.toList();
             if (check.length == 0) {
               for (var ass in temp) {
-                Assistance assistance = Assistance(
-                  level: ass['level'],
-                  price: ass['price'],
-                  payment_period: ass['payment_period'],
-                  record_date: ass['record_date'],
-                  deposit_date: ass['deposit_date'],
-                  payment_date: ass['payment_date'],
+                Assistances assistance = Assistances(
+                  level: ass['level'].toString(),
+                  price: ass['price'].toString(),
+                  payment_period: ass['payment_period'].toString(),
+                  record_date: ass['record_date'].toString(),
+                  deposit_date: ass['deposit_date'].toString(),
+                  payment_date: ass['payment_date'].toString(),
                   synced: true,
+                  status: ass['status'].toString(),
                 );
                 box.add(assistance);
+                print(ass['status'].toString());
               }
             }
             setState(() {
