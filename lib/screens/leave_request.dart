@@ -414,8 +414,7 @@ class _AllLeaveListState extends State<AllLeaves> {
                                     padding:
                                     EdgeInsets.all(8.0),
                                     decoration: BoxDecoration(
-                                      color: CustomColor
-                                          .successColor,
+                                      color: CustomColor.successColor,
                                       borderRadius:
                                       BorderRadius
                                           .circular(10.0),
