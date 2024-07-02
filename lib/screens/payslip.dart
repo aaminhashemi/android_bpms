@@ -371,9 +371,9 @@ class PayslipDetails extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("دریافت"),
+                  Text("دریافت",style: TextStyle(color: Colors.black),),
                   SizedBox(width: 4),
-                  Icon(Icons.download),
+                  Icon(Icons.download,color: Colors.black,),
                 ],
               ),
               style: ElevatedButton.styleFrom(
