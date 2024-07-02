@@ -97,6 +97,7 @@ class _WelcomeState extends State<WelcomeScreen> {
 
       try {
         final response = await updateService.check();
+        print(response);
         if (response['status'] == 'successful') {
           setState(() {
             readyToUpdate = true;
@@ -149,6 +150,7 @@ class _WelcomeState extends State<WelcomeScreen> {
                     child: Text(
                       Consts.update, style: TextStyle(color: Colors.white),),
                   ),
+                  (response['is_necessary']==0)?
                   TextButton(
                     style: ButtonStyle(
                       backgroundColor:
@@ -165,7 +167,7 @@ class _WelcomeState extends State<WelcomeScreen> {
                     },
                     child: Text(
                         Consts.cancel, style: TextStyle(color: Colors.white)),
-                  ),
+                  ):Row(),
                 ],
               );
             },
