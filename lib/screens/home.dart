@@ -47,7 +47,8 @@ class SwipeToRefreshExample extends StatefulWidget {
 class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
   final HomeService homeService = HomeService('https://afkhambpms.ir/api1');
-  final ActionService actionService = ActionService('https://afkhambpms.ir/api1');
+  final ActionService actionService =
+      ActionService('https://afkhambpms.ir/api1');
 
   bool isSyncing = false;
   bool isLoading = true;
@@ -60,7 +61,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   Box<Loan>? loanBox;
   Box<Mission>? missionBox;
   Box<Leaving>? leavingBox;
-  Box<Assistance>? assistanceBox;
+  Box<Assistances>? assistanceBox;
 
   late double latitude;
   late double longitude;
@@ -68,7 +69,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   List<Leaving>? leavingResults;
   List<Loan>? loanResults;
   List<Mission>? missionResults;
-  List<Assistance>? assistanceResults;
+  List<Assistances>? assistanceResults;
   List<dynamic> targetLatitudes = [];
   List<dynamic> targetLongitudes = [];
   late double distanceThreshold;
@@ -105,6 +106,14 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   @override
   void dispose() {
     super.dispose();
+  }
+
+  Jalali _parseJalaliDate(String dateString) {
+    List<String> parts = dateString.split('/');
+    int year = int.parse(parts[0]);
+    int month = int.parse(parts[1]);
+    int day = int.parse(parts[2]);
+    return Jalali(year, month, day);
   }
 
   Widget simple() {
@@ -279,6 +288,8 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   Future<void> loadLastState() async {
     var savedValue = await actionService.getLastActionInfo();
     var shiftValue = await authService.getShiftInfo();
+    var date = savedValue['date'];
+    var time = savedValue['time'];
     setState(() {
       distanceThreshold = double.parse(savedValue['distance']);
     });
@@ -295,16 +306,53 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
     bool endIsBetween = isTimeBetween(givenTime, endTime, endTimeUntil);
 
     if (startIsBetween) {
-      setState(() {
-        lastActionDescription = savedValue['description'];
-        lastActionType = 'exit';
-      });
+      if (date.toString().length > 0 && time.toString().length > 0) {
+        Jalali jalaliDate = _parseJalaliDate(date);
+        Jalali dateWithTime = Jalali.now();
+        Jalali now = Jalali(dateWithTime.year, dateWithTime.month, dateWithTime.day);
+        if (jalaliDate == now) {
+            setState(() {
+              lastActionDescription = savedValue['description'];
+              lastActionType = savedValue['type'];
+            });
+
+
+        }else{
+          setState(() {
+            lastActionDescription = savedValue['description'];
+            lastActionType = 'exit';
+          });
+        }
+      } else {
+        setState(() {
+          lastActionDescription = savedValue['description'];
+          lastActionType = 'exit';
+        });
+      }
     }
     if (endIsBetween) {
-      setState(() {
-        lastActionDescription = savedValue['description'];
-        lastActionType = 'arrival';
-      });
+      if (date.toString().length > 0 && time.toString().length > 0) {
+        Jalali jalaliDate = _parseJalaliDate(date);
+        Jalali dateWithTime = Jalali.now();
+        Jalali now =
+        Jalali(dateWithTime.year, dateWithTime.month, dateWithTime.day);
+        if (jalaliDate == now) {
+            setState(() {
+              lastActionDescription = savedValue['description'];
+              lastActionType = savedValue['type'];
+            });
+        }else{
+          setState(() {
+            lastActionDescription = savedValue['description'];
+            lastActionType = 'arrival';
+          });
+        }
+      } else {
+        setState(() {
+          lastActionDescription = savedValue['description'];
+          lastActionType = 'arrival';
+        });
+      }
     }
   }
 
@@ -381,19 +429,15 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
           );
           attendanceBox1.add(attendance);
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('last_action_description',
-              ' ورود ' + actionResponse['time'] + ' ' + actionResponse['date']);
+          await prefs.setString('last_action_date', actionResponse['date']);
+          await prefs.setString('last_action_time', actionResponse['time']);
+          await prefs.setString('last_action_description', ' ورود ' + actionResponse['time'] + ' - ' + actionResponse['date']);
           await prefs.setString('last_action_type', 'arrival');
-          setState(() {
-            lastActionType = 'arrival';
-            lastActionDescription = ' ورود ' +
-                actionResponse['time'] +
-                ' ' +
-                actionResponse['date'];
-          });
+          loadLastState();
         }
       } catch (e) {
-        CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
+        CustomNotification.show(
+            context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } else {
       CustomNotification.show(
@@ -456,19 +500,16 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
           );
           attendanceBox1.add(attendance);
           final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('last_action_date', actionResponse['date']);
+          await prefs.setString('last_action_time', actionResponse['time']);
           await prefs.setString('last_action_description',
-              ' خروج ' + actionResponse['time'] + ' ' + actionResponse['date']);
+              ' خروج ' + actionResponse['time'] + ' - ' + actionResponse['date']);
           await prefs.setString('last_action_type', 'exit');
-          setState(() {
-            lastActionType = 'exit';
-            lastActionDescription = ' خروج ' +
-                actionResponse['time'] +
-                ' ' +
-                actionResponse['date'];
-          });
+          loadLastState();
         }
       } catch (e) {
-        CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
+        CustomNotification.show(
+            context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
       }
     } else {
       CustomNotification.show(
@@ -792,28 +833,137 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                             ]))),
                                   ]),
                             )),
-                      (isConnected)?
-                            (_isInRange)
-                                ? (lastActionType == 'arrival')
-                                    ? Padding(
-                                        padding: EdgeInsets.only(
-                                            bottom: 8, left: 8, right: 8),
-                                        child: Card(
-                                            color: CustomColor.cardColor,
-                                            elevation: 2,
-                                            margin: EdgeInsets.only(bottom: 20),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10.0),
-                                            ),
-                                            child: Padding(
+                            (isConnected)
+                                ? (_isInRange)
+                                    ? (lastActionType == 'arrival')
+                                        ? Padding(
+                                            padding: EdgeInsets.only(
+                                                bottom: 8, left: 8, right: 8),
+                                            child: Card(
+                                                color: CustomColor.cardColor,
+                                                elevation: 2,
+                                                margin:
+                                                    EdgeInsets.only(bottom: 20),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          10.0),
+                                                ),
+                                                child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            15.0),
+                                                    child: Column(children: [
+                                                      Row(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          RichText(
+                                                              text: TextSpan(
+                                                                  children: <TextSpan>[
+                                                                TextSpan(
+                                                                    text:
+                                                                        'وضعیت : ',
+                                                                    style: TextStyle(
+                                                                        fontFamily:
+                                                                            'irs',
+                                                                        fontSize:
+                                                                            12.0,
+                                                                        fontWeight:
+                                                                            FontWeight
+                                                                                .bold,
+                                                                        color: CustomColor
+                                                                            .textColor)),
+                                                                TextSpan(
+                                                                    text:
+                                                                        'در حال کار',
+                                                                    style: TextStyle(
+                                                                        fontFamily:
+                                                                            'irs',
+                                                                        fontSize:
+                                                                            12.0,
+                                                                        color: CustomColor
+                                                                            .textColor)),
+                                                              ])),
+                                                          SizedBox(height: 40.0),
+                                                          Spacer(),
+                                                        ],
+                                                      ),
+                                                      Center(
+                                                          child: Container(
+                                                              width: 100,
+                                                              height: 100,
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                border:
+                                                                    Border.all(
+                                                                  color: Colors
+                                                                      .red,
+                                                                  width: 1.0,
+                                                                ),
+                                                              ),
+                                                              child: Container(
+                                                                width: 100,
+                                                                height: 100,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  shape: BoxShape
+                                                                      .circle,
+                                                                  border: Border
+                                                                      .all(
+                                                                    color: Colors
+                                                                        .yellow,
+                                                                    width: 1.0,
+                                                                  ),
+                                                                ),
+                                                                child:
+                                                                    ElevatedButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    submitExitAction();
+                                                                  },
+                                                                  child: Text('خروج'),
+                                                                  style: ElevatedButton
+                                                                      .styleFrom(
+                                                                    primary:
+                                                                        Colors
+                                                                            .red,
+                                                                    onPrimary:
+                                                                        Colors
+                                                                            .white,
+                                                                    shape: OvalBorder(
+                                                                        side: BorderSide
+                                                                            .none,
+                                                                        eccentricity:
+                                                                            0.07),
+                                                                    padding: EdgeInsets.symmetric(
+                                                                        vertical:
+                                                                            10,
+                                                                        horizontal:
+                                                                            20),
+                                                                  ),
+                                                                ),
+                                                              )))
+                                                    ]))))
+                                        : Padding(
+                                            padding: EdgeInsets.all(8),
+                                            child: Card(
+                                              color: CustomColor.cardColor,
+                                              elevation: 2,
+                                              margin:
+                                                  EdgeInsets.only(bottom: 20),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10.0),
+                                              ),
+                                              child: Padding(
                                                 padding:
                                                     const EdgeInsets.all(15.0),
                                                 child: Column(children: [
                                                   Row(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
                                                     children: [
                                                       RichText(
                                                           text: TextSpan(
@@ -833,7 +983,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                                         .textColor)),
                                                             TextSpan(
                                                                 text:
-                                                                    'در حال کار',
+                                                                    'حاضر در محل کار',
                                                                 style: TextStyle(
                                                                     fontFamily:
                                                                         'irs',
@@ -843,6 +993,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                                         .textColor)),
                                                           ])),
                                                       Spacer(),
+                                                      SizedBox(height: 40.0),
                                                     ],
                                                   ),
                                                   Center(
@@ -854,7 +1005,8 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                             shape:
                                                                 BoxShape.circle,
                                                             border: Border.all(
-                                                              color: Colors.red,
+                                                              color:
+                                                                  Colors.green,
                                                               width: 1.0,
                                                             ),
                                                           ),
@@ -875,15 +1027,15 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                             child:
                                                                 ElevatedButton(
                                                               onPressed: () {
-                                                                submitExitAction();
+                                                                submitArrivalAction();
                                                               },
                                                               child:
-                                                                  Text('خروج'),
+                                                                  Text('ورود'),
                                                               style:
                                                                   ElevatedButton
                                                                       .styleFrom(
-                                                                primary:
-                                                                    Colors.red,
+                                                                primary: Colors
+                                                                    .green,
                                                                 onPrimary:
                                                                     Colors
                                                                         .white,
@@ -901,109 +1053,17 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                               ),
                                                             ),
                                                           )))
-                                                ]))))
-                                    : Padding(
-                                        padding: EdgeInsets.all(8),
-                                        child: Card(
-                                          color: CustomColor.cardColor,
-                                          elevation: 2,
-                                          margin: EdgeInsets.only(bottom: 20),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(15.0),
-                                            child: Column(children: [
-                                              Row(
-                                                children: [
-                                                  RichText(
-                                                      text: TextSpan(
-                                                          children: <TextSpan>[
-                                                        TextSpan(
-                                                            text: 'وضعیت : ',
-                                                            style: TextStyle(
-                                                                fontFamily:
-                                                                    'irs',
-                                                                fontSize: 12.0,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color: CustomColor
-                                                                    .textColor)),
-                                                        TextSpan(
-                                                            text:
-                                                                'حاضر در محل کار',
-                                                            style: TextStyle(
-                                                                fontFamily:
-                                                                    'irs',
-                                                                fontSize: 12.0,
-                                                                color: CustomColor
-                                                                    .textColor)),
-                                                      ])),
-                                                  Spacer(),
-                                                ],
+                                                ]),
                                               ),
-                                              Center(
-                                                  child: Container(
-                                                      width: 100,
-                                                      height: 100,
-                                                      decoration: BoxDecoration(
-                                                        shape: BoxShape.circle,
-                                                        border: Border.all(
-                                                          color: Colors.green,
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      child: Container(
-                                                        width: 100,
-                                                        height: 100,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          border: Border.all(
-                                                            color:
-                                                                Colors.yellow,
-                                                            width: 1.0,
-                                                          ),
-                                                        ),
-                                                        child: ElevatedButton(
-                                                          onPressed: () {
-                                                            submitArrivalAction();
-                                                          },
-                                                          child: Text('ورود'),
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            primary:
-                                                                Colors.green,
-                                                            onPrimary:
-                                                                Colors.white,
-                                                            shape: OvalBorder(
-                                                                side: BorderSide
-                                                                    .none,
-                                                                eccentricity:
-                                                                    0.07),
-                                                            padding: EdgeInsets
-                                                                .symmetric(
-                                                                    vertical:
-                                                                        10,
-                                                                    horizontal:
-                                                                        20),
-                                                          ),
-                                                        ),
-                                                      )))
-                                            ]),
-                                          ),
-                                        ))
+                                            ))
+                                    : Expanded(
+                                        child: Center(
+                                        child: Text('در محل کار حضور ندارید!'),
+                                      ))
                                 : Expanded(
                                     child: Center(
-                                    child: Text('در محل کار حضور ندارید!'),
-                                  ))
-                      :Expanded(
-                          child: Center(
-                            child: Text('اینترنت دستگاه متصل نیست!'),
-                          )),
+                                    child: Text('اینترنت دستگاه متصل نیست!'),
+                                  )),
                           ])),
                   ))),
         )));
