@@ -1225,10 +1225,7 @@ class _AllMissionsListState extends State<AllMissions> {
                                                             10.0),
                                                   ),
                                                   child: Text(
-                                                    '${mission['level']}',
-                                                    style: TextStyle(
-                                                        color: CustomColor
-                                                            .textColor),
+                                                    '${mission['level']}'
                                                   ),
                                                 )
                                               : (mission['status'] ==
@@ -1244,10 +1241,7 @@ class _AllMissionsListState extends State<AllMissions> {
                                                                 .circular(10.0),
                                                       ),
                                                       child: Text(
-                                                        '${mission['level']}',
-                                                        style: TextStyle(
-                                                            color: CustomColor
-                                                                .textColor),
+                                                        '${mission['level']}'
                                                       ),
                                                     )
                                                   : Container(
@@ -1261,10 +1255,7 @@ class _AllMissionsListState extends State<AllMissions> {
                                                                 .circular(10.0),
                                                       ),
                                                       child: Text(
-                                                          '${mission['level']}',
-                                                          style: TextStyle(
-                                                              color: CustomColor
-                                                                  .textColor)),
+                                                          '${mission['level']}'),
                                                     ),
                                         ),
                                         children: <Widget>[
