@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 
-@HiveType(typeId: 3)
-class Assistance extends HiveObject {
+@HiveType(typeId: 8)
+class Assistances extends HiveObject {
   @HiveField(0)
   String level;
   @HiveField(1)
@@ -16,9 +16,11 @@ class Assistance extends HiveObject {
   String? payment_date;
   @HiveField(6)
   bool synced;
+  @HiveField(7)
+  String status;
 
   @HiveField(5)
-  Assistance({
+  Assistances({
     required this.level,
     required this.price,
     required this.payment_period,
@@ -26,20 +28,22 @@ class Assistance extends HiveObject {
     this.deposit_date,
     this.payment_date,
     required this.synced,
+    required this.status,
   });
 }
 
-class AssistanceAdapter extends TypeAdapter<Assistance> {
+class AssistanceAdapter extends TypeAdapter<Assistances> {
   @override
-  Assistance read(BinaryReader reader) {
+  Assistances read(BinaryReader reader) {
     final level = reader.readString();
     final price = reader.readString();
     final payment_period = reader.readString();
     final record_date = reader.readString();
     final deposit_date = reader.readString();
     final payment_date = reader.readString();
+    final status = reader.readString();
     final synced = reader.readBool();
-    return Assistance(
+    return Assistances(
       level: level,
       price: price,
       payment_period: payment_period,
@@ -47,21 +51,23 @@ class AssistanceAdapter extends TypeAdapter<Assistance> {
       deposit_date: deposit_date,
       payment_date: payment_date,
       synced: synced,
+      status: status,
     );
   }
 
   @override
   // TODO: implement typeId
-  int get typeId => 3;
+  int get typeId => 8;
 
   @override
-  void write(BinaryWriter writer, Assistance assistance) {
-    writer.writeString(assistance.level);
-    writer.writeString(assistance.price);
-    writer.writeString(assistance.payment_period);
-    writer.writeString(assistance.record_date);
-    writer.writeString(assistance.deposit_date??'');
-    writer.writeString(assistance.payment_date ?? '');
-    writer.writeBool(assistance.synced);
+  void write(BinaryWriter writer, Assistances assistances) {
+    writer.writeString(assistances.level);
+    writer.writeString(assistances.price);
+    writer.writeString(assistances.payment_period);
+    writer.writeString(assistances.record_date);
+    writer.writeString(assistances.deposit_date??'');
+    writer.writeString(assistances.payment_date ?? '');
+    writer.writeBool(assistances.synced);
+    writer.writeString(assistances.status);
   }
 }
