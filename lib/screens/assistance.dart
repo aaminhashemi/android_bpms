@@ -24,6 +24,7 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
   TextEditingController dateController = TextEditingController();
   TextEditingController valueController = TextEditingController();
   bool isLoading = false;
+  Box<Assist>? assistanceBox;
   int max_value = 0;
   final AuthService authService = AuthService('https://afkhambpms.ir/api1');
 
@@ -62,7 +63,9 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
       });
     }
   }
-
+  Future<void> initBox()async{
+    assistanceBox= await Hive.openBox('assistBox');
+  }
   @override
   void dispose() {
     valueController.removeListener(_formatValue);
@@ -101,116 +104,109 @@ class _AssistanceCreateState extends State<AssistanceCreate> {
     SaveAssistanceService saveAssistanceService = SaveAssistanceService(apiUrl);
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
-      final assistanceBox = Hive.box<Assistances>('assistanceBox1');
-      if(dateController.text.trim().length>0 && valueController.text.trim().length>1 ){
-        try{
-        List<String> parts = dateController.text.trim().split('/');
-      String monthName = '';
-      switch (parts[1]) {
-        case '01':
-          monthName = 'فروردین';
-          break;
-        case '02':
-          monthName = 'اردیبهشت';
-          break;
-        case '03':
-          monthName = 'خرداد';
-          break;
-        case '04':
-          monthName = 'تیر';
-          break;
-        case '05':
-          monthName = 'مرداد';
-          break;
-        case '06':
-          monthName = 'شهریور';
-          break;
-        case '07':
-          monthName = 'مهر';
-          break;
-        case '08':
-          monthName = 'آبان';
-          break;
-        case '09':
-          monthName = 'آذر';
-          break;
-        case '10':
-          monthName = 'دی';
-          break;
-        case '11':
-          monthName = 'بهمن';
-          break;
-        case '12':
-          monthName = 'اسفند';
-          break;
-      }
+      final assistanceBox = Hive.box<Assist>('assistBox');
+      if (dateController.text.trim().length > 0 &&
+          valueController.text.trim().length > 1) {
+        try {
+          List<String> parts = dateController.text.trim().split('/');
+          String monthName = '';
+          switch (parts[1]) {
+            case '01':
+              monthName = 'فروردین';
+              break;
+            case '02':
+              monthName = 'اردیبهشت';
+              break;
+            case '03':
+              monthName = 'خرداد';
+              break;
+            case '04':
+              monthName = 'تیر';
+              break;
+            case '05':
+              monthName = 'مرداد';
+              break;
+            case '06':
+              monthName = 'شهریور';
+              break;
+            case '07':
+              monthName = 'مهر';
+              break;
+            case '08':
+              monthName = 'آبان';
+              break;
+            case '09':
+              monthName = 'آذر';
+              break;
+            case '10':
+              monthName = 'دی';
+              break;
+            case '11':
+              monthName = 'بهمن';
+              break;
+            case '12':
+              monthName = 'اسفند';
+              break;
+          }
 
-      Assistances assistance = Assistances(
-        level: 'درخواست',
-        price: valueController.text.trim(),
-        payment_period: '${monthName} ${parts[0]}',
-        record_date: dateController.text.trim(),
-        deposit_date: null,
-        payment_date: null,
-        synced: false,
-        status: 'recorded',
-      );
-      assistanceBox.add(assistance);
-      setState(() {
-        isLoading = false;
-      });
-        CustomNotification.show(context, 'موفقیت آمیز',
-            'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
-    }catch(e){
+          Assist assistance = Assist(
+            level: 'درخواست',
+            price: valueController.text.trim(),
+            payment_period: '${monthName} ${parts[0]}',
+            record_date: dateController.text.trim(),
+            deposit_date: null,
+            payment_date: null,
+            synced: false,
+            status: 'recorded',
+          );
+          assistanceBox.add(assistance);
           setState(() {
             isLoading = false;
           });
-          CustomNotification.show(context, 'خطا',
-              'در ثبت درخواست مشکلی وجود دارد.', '/');
+          CustomNotification.show(context, 'موفقیت آمیز', 'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
+        } catch (e) {
+          setState(() {
+            isLoading = false;
+          });
+          CustomNotification.show(context, 'خطا', 'در ثبت درخواست مشکلی وجود دارد.', '/');
         }
-        }else{
+      } else {
         setState(() {
           isLoading = false;
         });
-        CustomNotification.show(context, 'خطا',
-            'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
+        CustomNotification.show(
+            context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
       }
-    }
-    else {
+    } else {
       try {
         final response = await saveAssistanceService.saveAssistance(
           dateController.text.trim(),
           valueController.text.trim(),
         );
-        if (response['status'] == 'successful') {
-            final assistanceBox = Hive.box<Assistances>('assistancesBox');
-
-            Assistances assistance = Assistances(
-              level: response['assistance']['level'],
-              price: valueController.text.trim(),
-              payment_period: response['assistance']['payment_period'],
-              record_date: dateController.text.trim(),
-              deposit_date: null,
-              payment_date: null,
-              synced: true,
-              status: 'recorded',
-            );
-            assistanceBox.add(assistance);
-          CustomNotification.show(context, 'موفقیت آمیز',
-              'درخواست مساعده با موفقیت ثبت شد.', '/assistance');
-        } else if (response['status'] == 'existed') {
-          CustomNotification.show(context, 'خطا',
-              'درخواست مساعده قبلا ثبت شده است.', '/assistance');
-        } else if (response['status'] == 'imperfect_data') {
-          CustomNotification.show(
-              context, 'خطا', 'لطفا اطلاعات را به صورت کامل وارد کنید.', '');
-        } else {
-          CustomNotification.show(
-              context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
+        if(response['status'] == 'successful') {
+          final assistanceBox = Hive.box<Assist>('assistBox');
+          Assist assistance = Assist(
+            level: response['assistance']['level'],
+            price: valueController.text.trim(),
+            payment_period: response['assistance']['payment_period'],
+            record_date: dateController.text.trim(),
+            deposit_date: null,
+            payment_date: null,
+            synced: true,
+            status: 'recorded',
+          );
+          assistanceBox.add(assistance);
+          CustomNotification.show(context,'موفقیت آمیز','درخواست مساعده با موفقیت ثبت شد.','/assistance');
+        }else if(response['status'] == 'existed') {
+          CustomNotification.show(context,'خطا','درخواست مساعده قبلا ثبت شده است.','/assistance');
+        }else if(response['status'] == 'imperfect_data') {
+          CustomNotification.show(context,'خطا','لطفا اطلاعات را به صورت کامل وارد کنید.','');
+        }else{
+          CustomNotification.show(context,'ناموفق','در ثبت درخواست مشکلی وجود دارد.','');
         }
       } catch (e) {
         CustomNotification.show(context, 'ناموفق',
-            'خطا در برقراری ارتباط، اتصال به اینترنت را بررسی نمایید.', '');
+            e.toString(), '');
       } finally {
         setState(() {
           isLoading = false;
@@ -370,17 +366,17 @@ class AllAssistances extends StatefulWidget {
 class _AllAssistanceListState extends State<AllAssistances> {
   bool isLoading = true;
   List<dynamic> allAssistanceList = [];
-  Box<Assistances>? assistanceBox;
-  List<Assistances>? results;
+  Box<Assist>? assistanceBox;
+  List<Assist>? results;
   bool isSynchronized = true;
   bool isSyncing = false;
   bool isConnected = false;
   double syncPercent = 0;
 
   Future<void> initBox() async {
-    assistanceBox = await Hive.openBox('assistanceBox1');
-    final List<Assistances>? results =
-    assistanceBox?.values.where((data) => data.synced == false).toList();
+    assistanceBox = await Hive.openBox('assistBox');
+    final List<Assist>? results =
+        assistanceBox?.values.where((data) => data.synced == false).toList();
     if (results!.length > 0) {
       setState(() {
         isSynchronized = false;
@@ -388,6 +384,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
     }
     setState(() {});
   }
+
   Future<void> connectionChecker() async {
     var connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
@@ -400,14 +397,15 @@ class _AllAssistanceListState extends State<AllAssistances> {
       });
     }
   }
+
   void SendListToServer() async {
     setState(() {
       isSyncing = true;
     });
     const apiUrl = 'https://afkhambpms.ir/api1/personnels/save-assistance';
     SaveAssistanceService saveAssistanceService = SaveAssistanceService(apiUrl);
-    final List<Assistances>? results =
-    assistanceBox?.values.where((data) => data.synced == false).toList();
+    final List<Assist>? results =
+        assistanceBox?.values.where((data) => data.synced == false).toList();
     double percent = 0;
     if (results!.isNotEmpty) {
       percent = 1 / (results!.length);
@@ -420,7 +418,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
             result.price,
           );
           if (response['status'] == 'successful') {
-            Assistances assistance = Assistances(
+            Assist assistance = Assist(
               level: response['assistance']['level'],
               price: result.price,
               payment_period: response['assistance']['payment_period'],
@@ -434,17 +432,17 @@ class _AllAssistanceListState extends State<AllAssistances> {
             setState(() {
               syncPercent = syncPercent + percent;
             });
-          }else if(response['status']=='existed'){
+          } else if (response['status'] == 'existed') {
             await assistanceBox?.delete(result.key);
             setState(() {
               syncPercent = syncPercent + percent;
             });
           }
-
         } catch (e) {
-          CustomNotification.show(context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
-        }finally{
-          allAssistanceList=[];
+          CustomNotification.show(
+              context, 'ناموفق', 'در ثبت درخواست مشکلی وجود دارد.', '');
+        } finally {
+          allAssistanceList = [];
           for (var res in assistanceBox!.values.toList()) {
             var assistance = {
               'level': res.level,
@@ -489,347 +487,401 @@ class _AllAssistanceListState extends State<AllAssistances> {
           title: Text('مساعده', style: TextStyle(color: CustomColor.textColor)),
         ),
         drawer: AppDrawer(),
-        body: (isSyncing)?
-       Center(
-         child:  Stack(
-           children: [
-             Positioned.fill(
-               child: BackdropFilter(
-                 filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                 child: Center(
-                   child: Padding(
-                     padding: EdgeInsets.symmetric(horizontal: 20),
-                     child: Container(
-                       decoration: BoxDecoration(
-                         color: Colors.greenAccent,
-                         borderRadius: BorderRadius.circular(10),
-                         boxShadow: [
-                           BoxShadow(
-                             color: Colors.white,
-                             blurRadius: 5,
-                             offset: Offset(0, 2),
-                           ),
-                         ],
-                       ),
-                       padding: EdgeInsets.all(20),
-                       child: Column(
-                         mainAxisAlignment: MainAxisAlignment.center,
-                         mainAxisSize: MainAxisSize.min,
-                         children: [
-                           Text(
-                             ' در حال به روز رسانی %${(syncPercent * 100).toInt()}',
-                             style: TextStyle(
-                               fontSize: 15,
-                               fontStyle: FontStyle.italic,
-                             ),
-                           ),
-                           SizedBox(height: 16),
-                           LinearProgressIndicator(
-                             value: syncPercent,
-                             backgroundColor: Colors.grey[300],
-                             valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
-                           ),
-                         ],
-                       ),
-                     ),
-                   ),
-                 ),
-               ),
-             ),
-           ],
-         ),
-       )
-            :Column(children: [
-          Container(
-            color: CustomColor.backgroundColor,
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  color: CustomColor.buttonColor,
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AssistanceCreate(),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'درخواست مساعده جدید',
-                              style: TextStyle(
-                                  color: CustomColor.backgroundColor,
-                                  fontWeight: FontWeight.bold),
+        body: (isSyncing)
+            ? Center(
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                        child: Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.greenAccent,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              padding: EdgeInsets.all(20),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    ' در حال به روز رسانی %${(syncPercent * 100).toInt()}',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  SizedBox(height: 16),
+                                  LinearProgressIndicator(
+                                    value: syncPercent,
+                                    backgroundColor: Colors.grey[300],
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.green),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  )),
-            ),
-          ),
-          SizedBox(height: 10),
-          (!isSynchronized && isConnected)
-              ? ElevatedButton(
-            style: ButtonStyle(
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
+                  ],
                 ),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("به روز رسانی"),
-                SizedBox(width: 8),
-                Icon(Icons.update),
-              ],
-            ),
-            onPressed: () {
-              SendListToServer();
-            },
-          )
-              : Row(),
-          (isLoading)
-              ? Expanded(
-                  child: Center(
-                  child: CircularProgressIndicator(),
-                ))
-              : (allAssistanceList.isEmpty)
-                  ? Expanded(
-                      child: Center(
-                      child: Text(
-                        'مساعده یافت نشد!',
-                        style: TextStyle(
-                          fontSize: 16,
+              )
+            : Column(children: [
+                Container(
+                  color: CustomColor.backgroundColor,
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                      ),
-                    ))
-                  : Expanded(
-                      child: SingleChildScrollView(
-                          child: Padding(
-                              padding: EdgeInsets.only(bottom: 15),
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: allAssistanceList.length,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  var assistance = allAssistanceList[index];
-                                  return Card(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5),
-                                    ),
-                                    elevation: 4.0,
-                                    color: CustomColor.backgroundColor,
-                                    margin: EdgeInsets.only(
-                                        left: 16, right: 16, top: 12),
-                                    child: ExpansionTile(
-                                      onExpansionChanged: (isExpanded) {
-                                        setState(() {
-                                          _isExpandedList[index] = isExpanded;
-                                        });
-                                      },
-                                      leading: _isExpandedList[index]
-                                          ? Icon(Icons.keyboard_arrow_up,
-                                              color: CustomColor
-                                                  .drawerBackgroundColor)
-                                          : Icon(Icons.keyboard_arrow_down,
-                                              color: CustomColor
-                                                  .drawerBackgroundColor),
-                                      shape: LinearBorder.none,
-                                      title: RichText(
-                                        text: TextSpan(children: <TextSpan>[
-                                          TextSpan(
-                                            text: 'دوره :',
-                                            style: TextStyle(
-                                                fontFamily: 'irs',
-                                                fontSize: 12.0,
-                                                fontWeight: FontWeight.bold,
-                                                color: CustomColor.textColor),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                ' ${assistance['payment_period']}',
-                                            style: TextStyle(
-                                                fontFamily: 'irs',
-                                                fontSize: 12.0,
-                                                fontWeight: FontWeight.normal,
-                                                color: CustomColor.textColor),
-                                          ),
-                                        ]),
-                                      ),
-                                      subtitle: RichText(
-                                        text: TextSpan(children: <TextSpan>[
-                                          TextSpan(
-                                            text: 'مبلغ :',
-                                            style: TextStyle(
-                                                fontFamily: 'irs',
-                                                fontSize: 12.0,
-                                                fontWeight: FontWeight.bold,
-                                                color: CustomColor.textColor),
-                                          ),
-                                          TextSpan(
-                                            text:
-                                                ' ${assistance['price']} ریال ',
-                                            style: TextStyle(
-                                                fontFamily: 'irs',
-                                                fontSize: 12.0,
-                                                fontWeight: FontWeight.normal,
-                                                color: CustomColor.textColor),
-                                          ),
-                                        ]),
-                                      ),
-                                      trailing: InkWell(
-                                        child:
-                                        (assistance['status']=='paid'||assistance['status']=='accepted'||assistance['status']=='completed')?
-                                        Container(
-                                          padding: EdgeInsets.all(8.0),
-                                          decoration: BoxDecoration(
-                                            color: CustomColor.successColor,
+                        color: CustomColor.buttonColor,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AssistanceCreate(),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(8.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'درخواست مساعده جدید',
+                                    style: TextStyle(
+                                        color: CustomColor.backgroundColor,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )),
+                  ),
+                ),
+                SizedBox(height: 10),
+                (!isSynchronized && isConnected)
+                    ? ElevatedButton(
+                        style: ButtonStyle(
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text("به روز رسانی"),
+                            SizedBox(width: 8),
+                            Icon(Icons.update),
+                          ],
+                        ),
+                        onPressed: () {
+                          SendListToServer();
+                        },
+                      )
+                    : Row(),
+                (isLoading)
+                    ? Expanded(
+                        child: Center(
+                        child: CircularProgressIndicator(),
+                      ))
+                    : (allAssistanceList.isEmpty)
+                        ? Expanded(
+                            child: Center(
+                            child: Text(
+                              'مساعده یافت نشد!',
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                            ),
+                          ))
+                        : Expanded(
+                            child: SingleChildScrollView(
+                                child: Padding(
+                                    padding: EdgeInsets.only(bottom: 15),
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: allAssistanceList.length,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemBuilder: (context, index) {
+                                        var assistance =
+                                            allAssistanceList[index];
+                                        return Card(
+                                          shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(10.0),
+                                                BorderRadius.circular(5),
                                           ),
-                                          child: Text(
-                                            '${assistance['level']}'),
-                                        ):(assistance['status']=='recorded')?Container(
-                                          padding: EdgeInsets.all(8.0),
-                                          decoration: BoxDecoration(
-                                            color: CustomColor.cardColor,
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          child: Text(
-                                            '${assistance['level']}'),
-                                        ):Container(
-                                          padding: EdgeInsets.all(8.0),
-                                          decoration: BoxDecoration(
-                                            color: CustomColor.dangerColor,
-                                            borderRadius:
-                                                BorderRadius.circular(10.0),
-                                          ),
-                                          child: Text(
-                                            '${assistance['level']}'),
-                                        ),
-                                      ),
-                                      children: <Widget>[
-                                        Container(
-                                          color: CustomColor.cardColor,
-                                          padding: EdgeInsets.all(16.0),
-                                          child: Row(
-                                            children: [
-                                              RichText(
-                                                text: TextSpan(
-                                                    children: <TextSpan>[
-                                                      TextSpan(
-                                                        text: 'تاریخ ثبت :',
-                                                        style: TextStyle(
-                                                            fontFamily: 'irs',
-                                                            fontSize: 12.0,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: CustomColor
-                                                                .textColor),
-                                                      ),
-                                                      TextSpan(
-                                                        text:
-                                                            ' ${assistance['record_date']}',
-                                                        style: TextStyle(
-                                                            fontFamily: 'irs',
-                                                            fontSize: 12.0,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .normal,
-                                                            color: CustomColor
-                                                                .textColor),
-                                                      ),
-                                                    ]),
-                                              ),
-                                              Spacer(),
-                                              if (assistance['deposit_date'] !=
-                                                  null)
-                                                RichText(
-                                                  text: TextSpan(
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text:
-                                                              'تاریخ پرداخت :',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontSize: 12.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                        TextSpan(
-                                                          text:
-                                                              ' ${assistance['payment_date']}',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontSize: 12.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .normal,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                      ]),
-                                                )
-                                              else
-                                                RichText(
-                                                  text: TextSpan(
-                                                      children: <TextSpan>[
-                                                        TextSpan(
-                                                          text:
-                                                              'تاریخ پرداخت :',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontSize: 12.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                        TextSpan(
-                                                          text: ' نامشخص',
-                                                          style: TextStyle(
-                                                              fontFamily: 'irs',
-                                                              fontSize: 12.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .normal,
-                                                              color: CustomColor
-                                                                  .textColor),
-                                                        ),
-                                                      ]),
+                                          elevation: 4.0,
+                                          color: CustomColor.backgroundColor,
+                                          margin: EdgeInsets.only(
+                                              left: 16, right: 16, top: 12),
+                                          child: ExpansionTile(
+                                            onExpansionChanged: (isExpanded) {
+                                              setState(() {
+                                                _isExpandedList[index] =
+                                                    isExpanded;
+                                              });
+                                            },
+                                            leading: _isExpandedList[index]
+                                                ? Icon(Icons.keyboard_arrow_up,
+                                                    color: CustomColor
+                                                        .drawerBackgroundColor)
+                                                : Icon(
+                                                    Icons.keyboard_arrow_down,
+                                                    color: CustomColor
+                                                        .drawerBackgroundColor),
+                                            shape: LinearBorder.none,
+                                            title: RichText(
+                                              text:
+                                                  TextSpan(children: <TextSpan>[
+                                                TextSpan(
+                                                  text: 'دوره :',
+                                                  style: TextStyle(
+                                                      fontFamily: 'irs',
+                                                      fontSize: 12.0,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: CustomColor
+                                                          .textColor),
                                                 ),
+                                                TextSpan(
+                                                  text:
+                                                      ' ${assistance['payment_period']}',
+                                                  style: TextStyle(
+                                                      fontFamily: 'irs',
+                                                      fontSize: 12.0,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                      color: CustomColor
+                                                          .textColor),
+                                                ),
+                                              ]),
+                                            ),
+                                            subtitle: RichText(
+                                              text:
+                                                  TextSpan(children: <TextSpan>[
+                                                TextSpan(
+                                                  text: 'مبلغ :',
+                                                  style: TextStyle(
+                                                      fontFamily: 'irs',
+                                                      fontSize: 12.0,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: CustomColor
+                                                          .textColor),
+                                                ),
+                                                TextSpan(
+                                                  text:
+                                                      ' ${assistance['price']} ریال ',
+                                                  style: TextStyle(
+                                                      fontFamily: 'irs',
+                                                      fontSize: 12.0,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                      color: CustomColor
+                                                          .textColor),
+                                                ),
+                                              ]),
+                                            ),
+                                            trailing: InkWell(
+                                              child: (assistance['status'] ==
+                                                          'paid' ||
+                                                      assistance['status'] ==
+                                                          'accepted' ||
+                                                      assistance['status'] ==
+                                                          'completed')
+                                                  ? Container(
+                                                      padding:
+                                                          EdgeInsets.all(8.0),
+                                                      decoration: BoxDecoration(
+                                                        color: CustomColor
+                                                            .successColor,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10.0),
+                                                      ),
+                                                      child: Text(
+                                                          '${assistance['level']}'),
+                                                    )
+                                                  : (assistance['status'] ==
+                                                          'recorded')
+                                                      ? Container(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  8.0),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: CustomColor
+                                                                .cardColor,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10.0),
+                                                          ),
+                                                          child: Text(
+                                                              '${assistance['level']}'),
+                                                        )
+                                                      : Container(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  8.0),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: CustomColor
+                                                                .dangerColor,
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        10.0),
+                                                          ),
+                                                          child: Text(
+                                                              '${assistance['level']}'),
+                                                        ),
+                                            ),
+                                            children: <Widget>[
+                                              Container(
+                                                color: CustomColor.cardColor,
+                                                padding: EdgeInsets.all(16.0),
+                                                child: Row(
+                                                  children: [
+                                                    RichText(
+                                                      text: TextSpan(
+                                                          children: <TextSpan>[
+                                                            TextSpan(
+                                                              text:
+                                                                  'تاریخ ثبت :',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                            TextSpan(
+                                                              text:
+                                                                  ' ${assistance['record_date']}',
+                                                              style: TextStyle(
+                                                                  fontFamily:
+                                                                      'irs',
+                                                                  fontSize:
+                                                                      12.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .normal,
+                                                                  color: CustomColor
+                                                                      .textColor),
+                                                            ),
+                                                          ]),
+                                                    ),
+                                                    Spacer(),
+                                                    if (assistance[
+                                                            'deposit_date'] !=
+                                                        null)
+                                                      RichText(
+                                                        text: TextSpan(
+                                                            children: <TextSpan>[
+                                                              TextSpan(
+                                                                text:
+                                                                    'تاریخ پرداخت :',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: CustomColor
+                                                                        .textColor),
+                                                              ),
+                                                              TextSpan(
+                                                                text:
+                                                                    ' ${assistance['payment_date']}',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .normal,
+                                                                    color: CustomColor
+                                                                        .textColor),
+                                                              ),
+                                                            ]),
+                                                      )
+                                                    else
+                                                      RichText(
+                                                        text: TextSpan(
+                                                            children: <TextSpan>[
+                                                              TextSpan(
+                                                                text:
+                                                                    'تاریخ پرداخت :',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: CustomColor
+                                                                        .textColor),
+                                                              ),
+                                                              TextSpan(
+                                                                text: ' نامشخص',
+                                                                style: TextStyle(
+                                                                    fontFamily:
+                                                                        'irs',
+                                                                    fontSize:
+                                                                        12.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .normal,
+                                                                    color: CustomColor
+                                                                        .textColor),
+                                                              ),
+                                                            ]),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
                                             ],
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ))))
-        ]),
+                                        );
+                                      },
+                                    ))))
+              ]),
       ),
     );
   }
@@ -840,9 +892,9 @@ class _AllAssistanceListState extends State<AllAssistances> {
     setState(() {
       isLoading = true;
     });
-    assistanceBox = await Hive.openBox('assistanceBox1');
+    assistanceBox = await Hive.openBox('assistBox');
     var connectivityResult = await Connectivity().checkConnectivity();
-    final box = Hive.box<Assistances>('assistanceBox1');
+    final box = Hive.box<Assist>('assistBox');
     if (connectivityResult != ConnectivityResult.none) {
       results = await assistanceBox?.values
           .where((data) => data.synced == false)
@@ -862,7 +914,7 @@ class _AllAssistanceListState extends State<AllAssistances> {
             var check = await box.values.toList();
             if (check.length == 0) {
               for (var ass in temp) {
-                Assistances assistance = Assistances(
+                Assist assistance = Assist(
                   level: ass['level'].toString(),
                   price: ass['price'].toString(),
                   payment_period: ass['payment_period'].toString(),
@@ -898,8 +950,8 @@ class _AllAssistanceListState extends State<AllAssistances> {
           });
         }
       } else {
-
-        for (var res in box.values.toList()..sort((a, b) => b.key.compareTo(a.key))) {
+        for (var res in box.values.toList()
+          ..sort((a, b) => b.key.compareTo(a.key))) {
           var assistance = {
             'level': res.level,
             'price': res.price,
@@ -913,10 +965,10 @@ class _AllAssistanceListState extends State<AllAssistances> {
         setState(() {
           isLoading = false;
         });
-
       }
     } else {
-      for (var res in box.values.toList()..sort((a, b) => b.key.compareTo(a.key))) {
+      for (var res in box.values.toList()
+        ..sort((a, b) => b.key.compareTo(a.key))) {
         var assistance = {
           'level': res.level,
           'price': res.price,

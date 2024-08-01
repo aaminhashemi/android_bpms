@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 
 @HiveType(typeId: 8)
-class Assistances extends HiveObject {
+class Assist extends HiveObject {
   @HiveField(0)
   String level;
   @HiveField(1)
@@ -20,7 +20,7 @@ class Assistances extends HiveObject {
   String status;
 
   @HiveField(5)
-  Assistances({
+  Assist({
     required this.level,
     required this.price,
     required this.payment_period,
@@ -32,9 +32,9 @@ class Assistances extends HiveObject {
   });
 }
 
-class AssistanceAdapter extends TypeAdapter<Assistances> {
+class AssistanceAdapter extends TypeAdapter<Assist> {
   @override
-  Assistances read(BinaryReader reader) {
+  Assist read(BinaryReader reader) {
     final level = reader.readString();
     final price = reader.readString();
     final payment_period = reader.readString();
@@ -43,7 +43,7 @@ class AssistanceAdapter extends TypeAdapter<Assistances> {
     final payment_date = reader.readString();
     final status = reader.readString();
     final synced = reader.readBool();
-    return Assistances(
+    return Assist(
       level: level,
       price: price,
       payment_period: payment_period,
@@ -60,14 +60,14 @@ class AssistanceAdapter extends TypeAdapter<Assistances> {
   int get typeId => 8;
 
   @override
-  void write(BinaryWriter writer, Assistances assistances) {
-    writer.writeString(assistances.level);
-    writer.writeString(assistances.price);
-    writer.writeString(assistances.payment_period);
-    writer.writeString(assistances.record_date);
-    writer.writeString(assistances.deposit_date??'');
-    writer.writeString(assistances.payment_date ?? '');
-    writer.writeBool(assistances.synced);
-    writer.writeString(assistances.status);
+  void write(BinaryWriter writer, Assist obj) {
+    writer.writeString(obj.level);
+    writer.writeString(obj.price);
+    writer.writeString(obj.payment_period);
+    writer.writeString(obj.record_date);
+    writer.writeString(obj.deposit_date ?? '');
+    writer.writeString(obj.payment_date ?? '');
+    writer.writeBool(obj.synced);
+    writer.writeString(obj.status);
   }
 }

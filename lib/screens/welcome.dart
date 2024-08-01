@@ -10,7 +10,7 @@ import '../services/auth_service.dart';
 import '../utils/consts.dart';
 import '../utils/custom_color.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
-import 'package:geocoding/geocoding.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
 import '../utils/custom_notification.dart';
 

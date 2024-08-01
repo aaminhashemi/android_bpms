@@ -6,6 +6,7 @@ import 'auth_service.dart';
 
 class ActionService {
   final String baseUrl;
+
   //static const String distanceKey = 'threshold_distance';
   static const String lastActionTypeKey = 'last_action_type';
   static const String lastActionTime = 'last_action_time';
@@ -55,10 +56,17 @@ class ActionService {
 
   Future<Map<String, dynamic>> getLastActionInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    return {'distance': prefs.getString(thresholdDistanceKey) ??'50', 'type': prefs.getString(lastActionTypeKey), 'description': prefs.getString(lastActionDescriptionKey), 'date': prefs.getString(lastActionDate)??'', 'time': prefs.getString(lastActionTime)??''};
+    return {
+      'distance': prefs.getString(thresholdDistanceKey) ?? '50',
+      'type': prefs.getString(lastActionTypeKey),
+      'description': prefs.getString(lastActionDescriptionKey),
+      'date': prefs.getString(lastActionDate) ?? '',
+      'time': prefs.getString(lastActionTime) ?? ''
+    };
   }
 
-  Future<Map<String, dynamic>> updateManual(String type , String status, String description) async {
+  Future<Map<String, dynamic>> updateManual(
+      String type, String status, String description) async {
     final token = await authService.getToken();
     final response = await http.post(Uri.parse('$baseUrl/update-manual-action'),
         body: jsonEncode({
@@ -77,17 +85,19 @@ class ActionService {
     return json.decode(response.body);
   }
 
-  Future<Map<String, dynamic>> updateForgetManual(String date , String time,String type , String status, String? description) async {
+  Future<Map<String, dynamic>> updateForgetManual(String date, String time,
+      String type, String status, String? description) async {
     final token = await authService.getToken();
-    final response = await http.post(Uri.parse('$baseUrl/update-forget-manual-action'),
-        body: jsonEncode({
-          'date': date,
-          'time': time,
-          'type': type,
-          'status': status,
-          'description': description
-        }),
-        headers: {
+    final response =
+        await http.post(Uri.parse('$baseUrl/update-forget-manual-action'),
+            body: jsonEncode({
+              'date': date,
+              'time': time,
+              'type': type,
+              'status': status,
+              'description': description
+            }),
+            headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -97,7 +107,7 @@ class ActionService {
 
   Future<String> getLastActionType() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(lastActionTypeKey)??'';
+    return prefs.getString(lastActionTypeKey) ?? '';
   }
 
   Future<void> saveLastActionType(String lastActionType) async {
@@ -107,7 +117,7 @@ class ActionService {
 
   Future<String> getLastActionDescription() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(lastActionDescriptionKey)??'';
+    return prefs.getString(lastActionDescriptionKey) ?? '';
   }
 
   Future<void> saveLastActionDescription(String lastActionDescription) async {
@@ -136,5 +146,4 @@ class ActionService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(thresholdDistanceKey, thresholdDistance);
   }
-
 }

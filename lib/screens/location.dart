@@ -229,15 +229,16 @@ class _AllListState extends State<AllList> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'ثبت ورود و خروج جدید',
+                                  'درخواست ثبت ورود و خروج',
                                   style: TextStyle(
                                       color: CustomColor.backgroundColor,
-                                      fontWeight: FontWeight.bold),
+                                      fontWeight: FontWeight.bold)
                                 ),
                               ],
                             ),
                           ),
-                        )),
+                        )
+                    ),
                   ),
                 ),
               ),

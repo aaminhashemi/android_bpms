@@ -71,13 +71,12 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>> otpCheckCode(String mobile, String code) async {
-    final response =
-        await http.post(Uri.parse('$baseUrl/login/otp-check-code'),
-            body: jsonEncode({
-              'mobile': mobile,
-              'code': code,
-            }),
-            headers: {
+    final response = await http.post(Uri.parse('$baseUrl/login/otp-check-code'),
+        body: jsonEncode({
+          'mobile': mobile,
+          'code': code,
+        }),
+        headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded',
         });
@@ -91,7 +90,7 @@ class AuthService {
 
   Future<String> getMaxAssistanceValue() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? max= prefs.getString(maxAssistanceValueKey);
+    final String? max = prefs.getString(maxAssistanceValueKey);
 
     String defaultAssistanceValue = '20000000'; // Default value
 
@@ -103,26 +102,26 @@ class AuthService {
 
   Future<String> getShiftStartTime() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? val= prefs.getString(shiftStartTime);
-    return(val) != null?val:'4:00:00';
+    final String? val = prefs.getString(shiftStartTime);
+    return (val) != null ? val : '4:00:00';
   }
 
   Future<String> getShiftCanStartTime() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? val= prefs.getString(shiftCanStartUntil);
-    return(val) != null?val:'12:00:00';
+    final String? val = prefs.getString(shiftCanStartUntil);
+    return (val) != null ? val : '12:00:00';
   }
 
   Future<String> getShiftEndTime() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? val= prefs.getString(shiftEndTime);
-    return(val) != null?val:'12:15:00';
+    final String? val = prefs.getString(shiftEndTime);
+    return (val) != null ? val : '12:15:00';
   }
 
   Future<String> getShiftCanEndTime() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? val= prefs.getString(shiftCanEndUntil);
-    return(val) != null?val:'22:00:00';
+    final String? val = prefs.getString(shiftCanEndUntil);
+    return (val) != null ? val : '22:00:00';
   }
 
   Future<Map<String, dynamic>> getInfo() async {
@@ -211,23 +210,29 @@ class AuthService {
 
   Future<Map<String, dynamic>> getShiftInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    return {'start': prefs.getString(shiftStartTime) ??'4:00:00', 'can_start': prefs.getString(shiftCanStartUntil)??'12:00:00', 'end': prefs.getString(shiftEndTime)??'12:15:00', 'can_end': prefs.getString(shiftCanEndUntil)??'22:00:00'};
+    return {
+      'start': prefs.getString(shiftStartTime) ?? '4:00:00',
+      'can_start': prefs.getString(shiftCanStartUntil) ?? '12:00:00',
+      'end': prefs.getString(shiftEndTime) ?? '12:15:00',
+      'can_end': prefs.getString(shiftCanEndUntil) ?? '22:00:00'
+    };
   }
 
   Future<void> getPersonnelShift(String accessToken) async {
     try {
-      final response = await http
-          .get(Uri.parse('https://afkhambpms.ir/api1/personnels/get-user-shift'), headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      });
+      final response = await http.get(
+          Uri.parse('https://afkhambpms.ir/api1/personnels/get-user-shift'),
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          });
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
-          saveShiftStartTime(responseData['shift']['start_time']);
-          saveShiftCanStartUntil(responseData['shift']['can_start_until']);
-          saveShiftEndTime(responseData['shift']['end_time']);
-          saveShiftCanEndUntil(responseData['shift']['can_end_until']);
+        saveShiftStartTime(responseData['shift']['start_time']);
+        saveShiftCanStartUntil(responseData['shift']['can_start_until']);
+        saveShiftEndTime(responseData['shift']['end_time']);
+        saveShiftCanEndUntil(responseData['shift']['can_end_until']);
       } else {
         saveShiftStartTime('4:00:00');
         saveShiftCanStartUntil('12:00:00');
@@ -235,8 +240,7 @@ class AuthService {
         saveShiftCanEndUntil('22:00:00');
         print('Request failed with status: ${response.statusCode}');
       }
-
-    }catch(e){
+    } catch (e) {
       print(e.toString());
     }
   }

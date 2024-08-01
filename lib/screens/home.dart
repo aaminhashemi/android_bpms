@@ -61,7 +61,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   Box<Loan>? loanBox;
   Box<Mission>? missionBox;
   Box<Leaving>? leavingBox;
-  Box<Assistances>? assistanceBox;
+  Box<Assist>? assistanceBox;
 
   late double latitude;
   late double longitude;
@@ -69,7 +69,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
   List<Leaving>? leavingResults;
   List<Loan>? loanResults;
   List<Mission>? missionResults;
-  List<Assistances>? assistanceResults;
+  List<Assist>? assistanceResults;
   List<dynamic> targetLatitudes = [];
   List<dynamic> targetLongitudes = [];
   late double distanceThreshold;
