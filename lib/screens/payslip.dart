@@ -379,8 +379,7 @@ class PayslipDetails extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
-                ),
-                primary: CustomColor.test1,
+                ), backgroundColor: CustomColor.test1,
               ),
             ),
           ],

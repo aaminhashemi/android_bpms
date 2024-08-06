@@ -71,8 +71,7 @@ class CustomNotification{
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          primary: CustomColor.successColor,
+                          ), backgroundColor: CustomColor.successColor,
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();
@@ -83,8 +82,7 @@ class CustomNotification{
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          primary: CustomColor.successColor,
+                          ), backgroundColor: CustomColor.successColor,
                         ),
                         onPressed: () {
                           Navigator.of(context).pop();

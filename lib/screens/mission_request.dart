@@ -847,9 +847,8 @@ class _MissionRequestState extends State<MissionRequest> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
                                       10.0),
-                                ),
+                                ), backgroundColor: CustomColor.successColor,
                                 minimumSize: const Size(double.infinity, 48),
-                                primary: CustomColor.successColor,
                               ),
                             ),
                           ])))

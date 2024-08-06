@@ -182,8 +182,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                               },
                               child: Text('خروج'),
                               style: ElevatedButton.styleFrom(
-                                primary: Colors.red,
-                                onPrimary: Colors.white,
+                                foregroundColor: Colors.white, backgroundColor: Colors.red,
                                 shape: OvalBorder(
                                     side: BorderSide.none, eccentricity: 0.07),
                                 padding: EdgeInsets.symmetric(
@@ -257,8 +256,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                               },
                               child: Text('ورود'),
                               style: ElevatedButton.styleFrom(
-                                primary: Colors.green,
-                                onPrimary: Colors.white,
+                                foregroundColor: Colors.white, backgroundColor: Colors.green,
                                 shape: OvalBorder(
                                     side: BorderSide.none, eccentricity: 0.07),
                                 padding: EdgeInsets.symmetric(
@@ -315,7 +313,6 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
               lastActionDescription = savedValue['description'];
               lastActionType = savedValue['type'];
             });
-
 
         }else{
           setState(() {
@@ -814,8 +811,7 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                     child: Text('مشاهده'),
                                                     style: ElevatedButton
                                                         .styleFrom(
-                                                      primary: Colors.teal,
-                                                      onPrimary: Colors.white,
+                                                      foregroundColor: Colors.white, backgroundColor: Colors.teal,
                                                       shape:
                                                           RoundedRectangleBorder(
                                                         borderRadius:
@@ -928,12 +924,9 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                                   child: Text('خروج'),
                                                                   style: ElevatedButton
                                                                       .styleFrom(
-                                                                    primary:
-                                                                        Colors
+                                                                    foregroundColor: Colors
+                                                                            .white, backgroundColor: Colors
                                                                             .red,
-                                                                    onPrimary:
-                                                                        Colors
-                                                                            .white,
                                                                     shape: OvalBorder(
                                                                         side: BorderSide
                                                                             .none,
@@ -1034,11 +1027,9 @@ class _SwipeToRefreshExampleState extends State<SwipeToRefreshExample> {
                                                               style:
                                                                   ElevatedButton
                                                                       .styleFrom(
-                                                                primary: Colors
+                                                                foregroundColor: Colors
+                                                                        .white, backgroundColor: Colors
                                                                     .green,
-                                                                onPrimary:
-                                                                    Colors
-                                                                        .white,
                                                                 shape: OvalBorder(
                                                                     side: BorderSide
                                                                         .none,

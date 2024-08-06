@@ -1603,9 +1603,8 @@ print(response['leaving']['level']);
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
                                         10.0),
-                                  ),
+                                  ), backgroundColor: CustomColor.buttonColor,
                                   minimumSize: const Size(double.infinity, 48),
-                                  primary: CustomColor.buttonColor,
                                 ),
                               ),
                             ],

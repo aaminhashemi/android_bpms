@@ -306,9 +306,8 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
                                       10.0),
-                                ),
+                                ), backgroundColor: CustomColor.successColor,
                                 minimumSize: const Size(double.infinity, 48),
-                                primary: CustomColor.successColor,
                               ),
                             )
                           : ElevatedButton(
@@ -323,9 +322,8 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(
                                       10.0),
-                                ),
+                                ), backgroundColor: CustomColor.successColor,
                                 minimumSize: const Size(double.infinity, 48),
-                                primary: CustomColor.successColor,
                               ),
                             ),
                       (!canReceiveNewCode)
